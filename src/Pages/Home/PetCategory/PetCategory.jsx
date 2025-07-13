@@ -18,7 +18,7 @@ const PetCategory = () => {
                     {categories.map((cat) => (
                         <button
                             key={cat.id}
-                            className="flex flex-col items-center justify-center py-10 bg-[#ff9416]/20 text-[#ff9416] rounded-xl shadow-md hover:bg-[#ff9416] hover:text-white transition"
+                            className="flex flex-col items-center justify-center py-10 bg-[#ff9416]/20 text-[#ff9416] rounded-xl shadow-md hover:bg-[#ff9416] hover:text-white transition duration-300 hover:scale-105"
                             onClick={() => alert(`Clicked on ${cat.name}`)} // Replace with your logic or link
                         >
                             <div className="mb-2 text-7xl">{cat.icon}</div>
