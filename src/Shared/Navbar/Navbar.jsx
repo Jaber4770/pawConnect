@@ -45,7 +45,7 @@ function Navbar() {
     
 
     return (
-        <AppBar position="static" sx={{ backgroundColor: 'white', color: 'black' }}>
+        <AppBar position="sticky" sx={{ backgroundColor: 'white', color: 'black' }}>
             <Container maxWidth={false}
                 sx={{
                     maxWidth: '1280px',

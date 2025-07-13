@@ -4,8 +4,8 @@ import { Autoplay, Controller, EffectFade } from 'swiper/modules';
 import 'swiper/css';
 import 'swiper/css/effect-fade';
 import './Banner.css'
-import adoptImg from '../../../assets/images/adopt.jpg';
-import donationImg from '../../../assets/images/donation.jpg';
+import adoptImg from '../../../assets/images/adopt.png';
+import donationImg from '../../../assets/images/donation.png';
 import lostFoundImg from '../../../assets/images/lost&found.jpg';
 import volunteerImg from '../../../assets/images/volunteer.jpg';
 import generalImg from '../../../assets/images/general.jpg';
@@ -54,7 +54,7 @@ const BannerCarousel = () => {
                     controller={{ control: textSwiperRef.current }}
                     autoplay={{ delay: 4000, disableOnInteraction: false }}
                     loop={true}
-                    className="w-full h-full"
+                    className="w-full h-full bg-orange-50"
                 >
                     {slides.map((slide, index) => (
                         <SwiperSlide key={index}>
