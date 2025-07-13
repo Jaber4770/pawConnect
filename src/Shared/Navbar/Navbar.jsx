@@ -46,11 +46,10 @@ function Navbar() {
 
     return (
         <AppBar position="sticky" sx={{ backgroundColor: 'white', color: 'black' }}>
-            <Container maxWidth={false}
+            <Container disableGutters maxWidth={false}
                 sx={{
                     maxWidth: '1280px',
-                    mx: 'auto',
-                    px: 2
+                    mx: 'auto'
                 }}>
                 <Toolbar disableGutters>
 

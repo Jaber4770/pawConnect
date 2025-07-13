@@ -5,7 +5,7 @@ import happyFamily from '../../../assets/images/happy-family-with-pet.jpg'
 
 const Inspiration = () => {
     return (
-        <section className="bg-gradient-to-r from-orange-100 to-orange-50 py-16 mb-12 px-6 md:px-16 rounded-2xl">
+        <section className="bg-gradient-to-r from-orange-100 to-orange-50 py-16 mb-12 px-6 md:px-16 rounded-2xl shadow-lg">
             <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center gap-10">
                 {/* Left Side - Images */}
                 <div className="w-full md:w-1/2 grid grid-cols-2 gap-4">
