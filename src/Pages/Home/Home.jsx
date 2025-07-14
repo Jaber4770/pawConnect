@@ -1,5 +1,4 @@
 import React from 'react';
-import Spinner from '../../Shared/Loader/Spinner';
 import BannerCarousel from './Banner/BannerCarousel';
 import PetCategory from './PetCategory/PetCategory';
 import Inspiration from './Inspiration/Inspiration';

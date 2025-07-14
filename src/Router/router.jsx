@@ -6,6 +6,7 @@ import DonationCampaigns from "../Pages/DonationCampaigns/DonationCampaigns";
 import AuthLayout from "../Layouts/AuthLayout/AuthLayout";
 import Login from "../Pages/Login/Login";
 import Register from "../Pages/Register/Register";
+import PetDetails from "../Pages/PetDetails/PetDetails";
 
 export const router = createBrowserRouter([
     {
@@ -28,6 +29,10 @@ export const router = createBrowserRouter([
             {
                 path: '/donation-campaigns',
                 element: <DonationCampaigns></DonationCampaigns>
+            },
+            {
+                path: '/pet-listing/pet-details',
+                element: <PetDetails></PetDetails>
             }
         ]
     },
