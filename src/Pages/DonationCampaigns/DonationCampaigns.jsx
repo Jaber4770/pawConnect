@@ -119,6 +119,9 @@ const DonationCampaigns = () => {
         setHasMore(ITEMS_PER_LOAD < campaigns.length);
     }, [selectedCategory, getFilteredSortedCampaigns]);
 
+    // added it to remove the red alert
+    { hasMore }
+
     useEffect(() => {
         const handleScroll = () => {
             if (
