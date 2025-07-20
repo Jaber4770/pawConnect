@@ -5,10 +5,12 @@ import { AuthContext } from '../../Contexts/AuthContext/AuthContext';
 import useAuth from '../../Hooks/useAuth';
 import { useNavigate } from 'react-router';
 
+
 const SocialLogin = () => {
-    const { signInWithGooglePopUp } = useAuth();
+    const { signInWithGooglePopUp, signInWithFacebookPopUp } = useAuth();
     const navigate = useNavigate();
 
+    // https://pawconnect-01.firebaseapp.com/__/auth/handler/
 
     const handleGooglePopupLogin = () => {
         signInWithGooglePopUp()
@@ -22,6 +24,19 @@ const SocialLogin = () => {
         })
     }
 
+    const handleFBPopuplogin = () => {
+        signInWithFacebookPopUp()
+            .then(result => {
+                if (result.user.email) {
+                    // console.log(result.user);
+                    // user will be redirect to dashboard.
+                    navigate("/dashboard");
+                }
+            }).catch(error => {
+                console.log(error);
+            })
+    }
+
     return (
         <div>
             <div className="space-y-3">
@@ -30,7 +45,7 @@ const SocialLogin = () => {
                         className='text-3xl' />
                     Login with Google
                 </button>
-                <button className="w-full flex items-center justify-center gap-2 border border-gray-300 py-2 rounded-md cursor-pointer hover:bg-gray-100">
+                <button onClick={handleFBPopuplogin} className="w-full flex items-center justify-center gap-2 border border-gray-300 py-2 rounded-md cursor-pointer hover:bg-gray-100">
                     <FaFacebook className="text-blue-600 text-3xl" />
                     Login with Facebook
                 </button>

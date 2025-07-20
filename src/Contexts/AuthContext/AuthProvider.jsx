@@ -1,11 +1,12 @@
 import React, { useEffect } from 'react';
 import { AuthContext } from './AuthContext';
-import { createUserWithEmailAndPassword, GoogleAuthProvider, onAuthStateChanged, signInWithEmailAndPassword, signInWithPopup } from 'firebase/auth';
+import { createUserWithEmailAndPassword, FacebookAuthProvider, GoogleAuthProvider, onAuthStateChanged, signInWithEmailAndPassword, signInWithPopup } from 'firebase/auth';
 import { auth } from '../../../firebase.init';
 import { Password } from '@mui/icons-material';
 
 
 const provider = new GoogleAuthProvider();
+const FbProvider = new FacebookAuthProvider();
 const AuthProvider = ({ children }) => {
 
 
@@ -19,6 +20,10 @@ const AuthProvider = ({ children }) => {
 
     const signInWithGooglePopUp = () => {
         return signInWithPopup(auth, provider);
+    }
+
+    const signInWithFacebookPopUp = () => {
+        return signInWithPopup(auth, FbProvider);
     }
 
     const logOutUser = () => {
@@ -40,8 +45,9 @@ const AuthProvider = ({ children }) => {
         logOutUser,
         signInUser,
         createUser,
+        updateUserProfile,
         signInWithGooglePopUp,
-        updateUserProfile
+        signInWithFacebookPopUp,
     }
     return (
         <AuthContext value={authInfo}>
