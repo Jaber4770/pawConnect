@@ -25,6 +25,7 @@ import MenuIcon from '@mui/icons-material/Menu';
 import { Link, Outlet, useLocation, useNavigate } from "react-router";
 import PeopleIcon from '@mui/icons-material/People';
 import AttachMoneyIcon from '@mui/icons-material/AttachMoney';
+import useAuth from "../../Hooks/useAuth";
 
 
 const drawerWidth = 240;
@@ -47,6 +48,10 @@ export default function DashboardLayout() {
     const [selectedIndex, setSelectedIndex] = React.useState(0);
     const navigate = useNavigate();
     const location = useLocation();
+    const { user } = useAuth();
+/*     console.log(user?.email);
+    console.log(user?.displayName);
+    console.log(user?.photoURL); */
 
     const handleDrawerToggle = () => {
         setMobileOpen(!mobileOpen);
@@ -56,9 +61,15 @@ export default function DashboardLayout() {
         <div>
             <Toolbar>
                 <Link to={'/dashboard'}>
-                    <Typography variant="h6" noWrap component="div">
+                    <Typography variant="h6"
+                        sx={{ fontSize: '32px', color: 'orange', fontWeight: 'bold' }}
+                        noWrap component="div">
                         Dashboard
                     </Typography>
+                    <div  className="flex gap-2 items-center">
+                        <img className="rounded-full border-4 border-orange-300 w-16" src={user?.photoURL} alt="" />
+                        <h2 className="font-bold">{user?.displayName}</h2>
+                    </div>
                 </Link>
             </Toolbar>
             <List>
@@ -73,7 +84,7 @@ export default function DashboardLayout() {
                         
                     >
                         <ListItemButton>
-                            <ListItemIcon>{item.icon}</ListItemIcon>
+                            <ListItemIcon sx={{ color: 'orange' }}>{item.icon}</ListItemIcon>
                             <ListItemText primary={item.text} />
                         </ListItemButton>
                     </ListItem>
@@ -94,6 +105,7 @@ export default function DashboardLayout() {
             <AppBar
                 position="fixed"
                 sx={{
+                    backgroundColor: 'orange',
                     width: { sm: `calc(100% - ${drawerWidth}px)` },
                     ml: { sm: `${drawerWidth}px` }
                 }}

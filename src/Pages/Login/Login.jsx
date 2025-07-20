@@ -2,13 +2,15 @@ import React from 'react';
 import { FaFacebook, FaGoogle } from 'react-icons/fa';
 import petImage from '../../assets/pet-login.png';
 import { FcGoogle } from 'react-icons/fc';
-import { Link } from 'react-router';
+import { Link, useNavigate } from 'react-router';
 import SocialLogin from '../SocialLogin/SocialLogin';
 import useAuth from '../../Hooks/useAuth';
+import Swal from 'sweetalert2';
 
 const Login = () => {
 
     const { signInUser } = useAuth();
+    const navigate = useNavigate();
 
     const handleLogin = e => {
         e.preventDefault();
@@ -16,7 +18,14 @@ const Login = () => {
         const password = e.target.password.value;
         signInUser(email, password)
             .then(res => {
-                console.log(res.user);
+                Swal.fire({
+                    position: "top-end",
+                    icon: "success",
+                    title: "Successfully Login",
+                    showConfirmButton: false,
+                    timer: 1000
+                });
+                navigate("/dashboard");
             })
             .catch(err => {
                 console.log(err);

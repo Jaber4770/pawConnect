@@ -13,6 +13,7 @@ import Tooltip from '@mui/material/Tooltip';
 import MenuItem from '@mui/material/MenuItem';
 import { Link, NavLink, useNavigate } from 'react-router';
 import PawLogo from '../Logo/PawLogo';
+import useAuth from '../../Hooks/useAuth';
 
 const pages = ['Home', 'Pet Listing', 'Donation Campaigns'];
 const settings = ['Profile', 'Dashboard', 'Logout'];
@@ -21,6 +22,7 @@ function Navbar() {
     const [anchorElNav, setAnchorElNav] = React.useState(null);
     const [anchorElUser, setAnchorElUser] = React.useState(null);
     const navigate = useNavigate();
+    const { user } = useAuth();
 
     const handleOpenNavMenu = (event) => {
         setAnchorElNav(event.currentTarget);
@@ -158,15 +160,24 @@ function Navbar() {
 
                     </Box>
                     <Box sx={{ flexGrow: 0 }}>
-                        {/* user profilephoto or Login */}
-                        <Link to="/login" className="btn px-2 py-1 rounded-sm border border-[#ff9416] text-[#ff9416] hover:bg-[#ff9416] hover:text-white transition duration-300 font-semibold">Login</Link>
+                        {
+                            user?.email ? 
+                                <Tooltip title="Open settings">
+                                    <IconButton onClick={handleOpenUserMenu} sx={{ p: 0 }}>
+                                        {/* user profilephoto or Login */}
+                                        <Avatar sx={{
+                                            width: "60px",
+                                            height:"60px"
+                                        }} alt="Remy Sharp" src={user?.photoURL} />
+                                    </IconButton>
+                                </Tooltip>
+                                :
+                                <>
+                                    {/* user profilephoto or Login */}
+                                    <Link to="/login" className="btn px-2 py-1 rounded-sm border border-[#ff9416] text-[#ff9416] hover:bg-[#ff9416] hover:text-white transition duration-300 font-semibold">Login</Link>
+                                </>
+                        }
 
-                        <Tooltip title="Open settings">
-                            <IconButton onClick={handleOpenUserMenu} sx={{ p: 0 }}>
-                                {/* user profilephoto or Login */}
-                                <Avatar alt="Remy Sharp" src="/static/images/avatar/2.jpg" />
-                            </IconButton>
-                        </Tooltip>
                         <Menu
                             sx={{ mt: '45px' }}
                             id="menu-appbar"

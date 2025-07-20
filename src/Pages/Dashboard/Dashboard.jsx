@@ -30,9 +30,13 @@ import {
     Legend,
     ResponsiveContainer,
 } from 'recharts';
+import useAuth from '../../Hooks/useAuth';
 
 const Dashboard = () => {
     const theme = useTheme();
+    const { user } = useAuth();
+    console.log(user?.email);
+
 
     const [dashboardStats] = useState([
         {
