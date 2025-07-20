@@ -1,11 +1,71 @@
-import React from 'react';
-import { FaFacebook, FaGoogle } from 'react-icons/fa';
+import React, { useState } from 'react';
 import petImage from '../../assets/pet-login.png';
-import { FcGoogle } from 'react-icons/fc';
-import { Link } from 'react-router';
+import { Link, useNavigate } from 'react-router';
 import SocialLogin from '../SocialLogin/SocialLogin';
+import useAuth from '../../Hooks/useAuth';
+import Swal from 'sweetalert2';
 
 const Register = () => {
+    const [formData, setFormData] = useState({
+        name: '',
+        email: '',
+        password: '',
+        confirmPassword: '',
+    });
+
+    const [passwordError, setPasswordError] = useState('');
+    const { createUser } = useAuth();
+    const navigate = useNavigate();
+
+    const handleChange = (e) => {
+        const { name, value } = e.target;
+        const updatedData = { ...formData, [name]: value };
+
+        // Set updated form data
+        setFormData(updatedData);
+
+        // Check password match on each keystroke
+        if (
+            name === 'password' ||
+            name === 'confirmPassword'
+        ) {
+            if (
+                updatedData.confirmPassword &&
+                updatedData.password !== updatedData.confirmPassword
+            ) {
+                setPasswordError('Passwords do not match');
+            } else {
+                setPasswordError('');
+            }
+        }
+    };
+
+    const handleRegister = (e) => {
+        e.preventDefault();
+
+        if (passwordError) return; // prevent form submission if error
+
+        const { name, email, password } = formData;
+        console.log('Register clicked!', name, email, password);
+
+        // proceed with submission
+        createUser(email, password)
+            .then(res => {
+                if (res.user.email) {
+                    Swal.fire({
+                        title: "Your account has been created!",
+                        icon: "success",
+                        showConfirmButton: false,
+                        timer: 1000
+                    });
+                    navigate('/dashboard');
+              };
+            })
+            .catch(err => {
+                console.log(err);
+        })
+    };
+
     return (
         <div className="min-h-screen grid grid-cols-1 md:grid-cols-2">
             {/* Image Section */}
@@ -24,15 +84,19 @@ const Register = () => {
                         Join the Paw Family 🐶
                     </h2>
 
-                    <form className="space-y-4">
+                    <form onSubmit={handleRegister} className="space-y-4">
                         <div>
                             <label className="block mb-1 text-sm font-medium text-gray-700">
                                 Full Name
                             </label>
                             <input
                                 type="text"
+                                name="name"
+                                value={formData.name}
+                                onChange={handleChange}
                                 placeholder="Enter your name"
                                 className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-orange-400"
+                                required
                             />
                         </div>
 
@@ -42,8 +106,12 @@ const Register = () => {
                             </label>
                             <input
                                 type="email"
+                                name="email"
+                                value={formData.email}
+                                onChange={handleChange}
                                 placeholder="Enter your email"
                                 className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-orange-400"
+                                required
                             />
                         </div>
 
@@ -53,8 +121,12 @@ const Register = () => {
                             </label>
                             <input
                                 type="password"
+                                name="password"
+                                value={formData.password}
+                                onChange={handleChange}
                                 placeholder="Create a password"
                                 className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-orange-400"
+                                required
                             />
                         </div>
 
@@ -64,14 +136,26 @@ const Register = () => {
                             </label>
                             <input
                                 type="password"
+                                name="confirmPassword"
+                                value={formData.confirmPassword}
+                                onChange={handleChange}
                                 placeholder="Confirm your password"
-                                className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-orange-400"
+                                className={`w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 ${passwordError
+                                        ? 'border-red-500 focus:ring-red-400'
+                                        : 'focus:ring-orange-400'
+                                    }`}
+                                required
                             />
                         </div>
 
+                        {passwordError && (
+                            <p className="text-red-500 text-sm font-medium">{passwordError}</p>
+                        )}
+
                         <button
                             type="submit"
-                            className="w-full bg-orange-500 text-white py-2 rounded-md hover:bg-orange-600 transition"
+                            disabled={!!passwordError}
+                            className="w-full cursor-pointer bg-orange-500 text-white py-2 rounded-md hover:bg-orange-600 transition disabled:opacity-50"
                         >
                             Register
                         </button>
@@ -83,7 +167,7 @@ const Register = () => {
                         <div className="border-t w-full"></div>
                     </div>
 
-                        <SocialLogin></SocialLogin>
+                    <SocialLogin />
 
                     <p className="mt-6 text-center text-sm text-gray-600">
                         Already have an account?{' '}

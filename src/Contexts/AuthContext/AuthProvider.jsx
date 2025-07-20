@@ -1,19 +1,20 @@
 import React, { useEffect } from 'react';
 import { AuthContext } from './AuthContext';
-import { GoogleAuthProvider, onAuthStateChanged, signInWithPopup } from 'firebase/auth';
+import { createUserWithEmailAndPassword, GoogleAuthProvider, onAuthStateChanged, signInWithEmailAndPassword, signInWithPopup } from 'firebase/auth';
 import { auth } from '../../../firebase.init';
+import { Password } from '@mui/icons-material';
 
 
 const provider = new GoogleAuthProvider();
 const AuthProvider = ({ children }) => {
 
 
-    const createUser = () => {
-        
+    const createUser = (email, password) => {
+        return createUserWithEmailAndPassword(auth, email, password)
     }
 
-    const signInUser = () => {
-        
+    const signInUser = (email, password) => {
+        return signInWithEmailAndPassword(auth, email, password)
     }
 
     const signInWithGooglePopUp = () => {
@@ -21,17 +22,17 @@ const AuthProvider = ({ children }) => {
     }
 
     const logOutUser = () => {
-        
+
     }
 
     const updateUserProfile = () => {
-        
+
     }
 
-/*     useEffect(() => {
-        const unsubscribe = onAuthStateChanged();
-        return () => unsubscribe();
-    },[]) */
+    /*     useEffect(() => {
+            const unsubscribe = onAuthStateChanged();
+            return () => unsubscribe();
+        },[]) */
 
 
 
