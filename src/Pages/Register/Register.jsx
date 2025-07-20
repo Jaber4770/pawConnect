@@ -3,6 +3,7 @@ import { FaFacebook, FaGoogle } from 'react-icons/fa';
 import petImage from '../../assets/pet-login.png';
 import { FcGoogle } from 'react-icons/fc';
 import { Link } from 'react-router';
+import SocialLogin from '../SocialLogin/SocialLogin';
 
 const Register = () => {
     return (
@@ -82,16 +83,7 @@ const Register = () => {
                         <div className="border-t w-full"></div>
                     </div>
 
-                    <div className="space-y-3">
-                        <button className="w-full flex items-center justify-center gap-2 border border-gray-300 py-2 rounded-md hover:bg-gray-100">
-                            <FcGoogle className='text-3xl'/>
-                            Sign up with Google
-                        </button>
-                        <button className="w-full flex items-center justify-center gap-2 border border-gray-300 py-2 rounded-md hover:bg-gray-100">
-                            <FaFacebook className="text-blue-600 text-3xl" />
-                            Sign up with Facebook
-                        </button>
-                    </div>
+                        <SocialLogin></SocialLogin>
 
                     <p className="mt-6 text-center text-sm text-gray-600">
                         Already have an account?{' '}

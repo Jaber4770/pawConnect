@@ -1,6 +1,6 @@
 # 🐾 pawConnect - Pet Adoption & Donation Platform
 
-**Live Site**: [https://pawconnect.adopt-now.app](https://pawconnect.adopt-now.app)  
+**Live Site**:  https://pawconnect-01.web.app
 **Server Repo**: [GitHub Server Link](https://github.com/yourusername/pawconnect-server)  
 **Client Repo**: [GitHub Client Link](https://github.com/yourusername/pawconnect-client)
 
