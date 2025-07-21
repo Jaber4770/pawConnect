@@ -5,9 +5,7 @@ import { Link } from 'react-router';
 const PawLogo = () => {
     return (
         <div>
-            <Link to={'/'}>
-                <img className='w-16' src={Logo} alt="" />
-            </Link>
+            <img className='w-16' src={Logo} alt="" />
         </div>
     );
 };

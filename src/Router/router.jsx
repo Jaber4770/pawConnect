@@ -44,7 +44,7 @@ export const router = createBrowserRouter([
                 element: <DonationCampaigns></DonationCampaigns>
             },
             {
-                path: '/pet-listing/pet-details',
+                path: '/pet-details/:id',
                 element: <PetDetails></PetDetails>
             },
             {
