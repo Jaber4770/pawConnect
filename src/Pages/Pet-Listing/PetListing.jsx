@@ -1,40 +1,31 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import PetCard from './PetCard';
 import { Select, MenuItem } from '@mui/material';
 import { Search } from 'lucide-react';
 import Spinner from '../../Shared/Loader/Spinner';
 import useAxios from '../../Hooks/useAxios';
+import { useQuery } from '@tanstack/react-query';
 
 export default function PetListing() {
     // Filters state
     const [sort, setSort] = useState('date-desc');
     const [search, setSearch] = useState('');
     const [category, setCategory] = useState('');
-
-    // Data state
-    const [petData, setPetData] = useState([]);
-    const [loading, setLoading] = useState(false);
     const axios = useAxios();
 
     // Fetch pets function (without infinite scroll)
-    const fetchPetList = async () => {
-        setLoading(true);
-        try {
-            // Adjust query params based on filters if your backend supports it
+    const { isPending, data: petData = [], error } = useQuery({
+        queryKey: ['pet-listing'],
+        queryFn: async () => {
             const res = await axios.get('/pet-listing');
-            // console.log(res.data);
-            setPetData(res.data); // assuming backend returns array of pets directly
-        } catch (error) {
-            console.error('Failed to fetch pets', error);
-            setPetData([]);
+            return res.data; // assuming it's an array
         }
-        setLoading(false);
-    };
+    });
 
-    // Fetch pets once when component mounts or filters change
-    useEffect(() => {
-        fetchPetList();
-    },[]);
+    if (isPending) return <Spinner />;
+    if (error) return <div>Failed to load pets</div>;
+
+
 
     return (
         <div className="max-w-7xl mx-auto py-6">
@@ -88,7 +79,7 @@ export default function PetListing() {
             </div>
 
             {/* Pet cards grid */}
-            {loading ? (
+            {isPending ? (
                 <div className="flex justify-center items-center py-8">
                     <Spinner />
                 </div>

@@ -31,7 +31,7 @@ const PetDetails = () => {
         <div className="max-w-4xl mx-auto px-4 py-10">
             {/* Image */}
             <div className="rounded-2xl overflow-hidden shadow-lg mb-8">
-                <img src={pet.image} alt={pet.name} className="w-full h-96 object-cover" />
+                <img src={pet.image} alt={pet.name} className="w-full object-cover" />
             </div>
 
             {/* Info */}
@@ -64,13 +64,13 @@ const PetDetails = () => {
                     <div className='flex gap-2'>
                         <button
                             onClick={() => setModalOpen(true)}
-                            className="bg-orange-500 hover:bg-orange-600 text-white px-6 py-2 rounded-xl font-semibold transition"
+                            className="bg-orange-500 hover:bg-orange-600 text-white px-6 py-2 rounded-xl font-semibold transition cursor-pointer"
                         >
                             Adopt Now
                         </button>
                         <Link  to={'/pet-listing'}>
                             <button
-                                className="bg-gray-500 hover:bg-orange-600 text-white px-6 py-2 rounded-xl font-semibold transition"
+                                className="bg-gray-500 hover:bg-orange-600 text-white px-6 py-2 rounded-xl font-semibold transition cursor-pointer"
                             >Go back</button></Link>
                     </div>
                 </div>
