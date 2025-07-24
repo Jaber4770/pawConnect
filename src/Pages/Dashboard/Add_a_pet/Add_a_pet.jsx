@@ -1,222 +1,220 @@
-import React, { useState } from "react";
+import React from "react";
+import {
+    Box,
+    Button,
+    MenuItem,
+    Select,
+    TextField,
+    Typography,
+    FormControl,
+    InputLabel,
+    FormHelperText,
+    FormGroup,
+    FormControlLabel,
+    Checkbox,
+} from "@mui/material";
 import { Formik, Form, Field, ErrorMessage } from "formik";
 import * as Yup from "yup";
-import Select from "react-select";
 import axios from "axios";
-import { TextField, Button, Typography, Box } from "@mui/material";
 
-const petCategories = [
-    { value: "dog", label: "Dog" },
-    { value: "cat", label: "Cat" },
-    { value: "rabbit", label: "Rabbit" },
-    { value: "bird", label: "Bird" },
-    { value: "other", label: "Other" },
-];
+const initialValues = {
+    name: "",
+    age: "",
+    location: "",
+    category: "",
+    breed: "",
+    gender: "",
+    size: "",
+    color: "",
+    goodWithKids: false,
+    goodWithOtherPets: false,
+    vaccinated: false,
+    neutered: false,
+    adoptionStatus: "Available",
+    image: "",
+    shortDescription: "",
+    longDescription: "",
+};
 
 const validationSchema = Yup.object({
-    petName: Yup.string().required("Pet name is required"),
-    petAge: Yup.string().required("Pet age is required"),
-    petLocation: Yup.string().required("Location is required"),
-    shortDescription: Yup.string().required("Short description is required"),
-    longDescription: Yup.string().required("Long description is required"),
-    petCategory: Yup.object().required("Category is required"),
-    petImage: Yup.mixed().required("Image is required"),
+    name: Yup.string().required("Required"),
+    age: Yup.string().required("Required"),
+    location: Yup.string().required("Required"),
+    category: Yup.string().required("Required"),
+    breed: Yup.string().required("Required"),
+    gender: Yup.string().required("Required"),
+    size: Yup.string().required("Required"),
+    color: Yup.string()
+        .matches(/^[A-Za-z\s]+$/, "Only alphabets and spaces allowed")
+        .required("Required"),
+    shortDescription: Yup.string().required("Required"),
+    longDescription: Yup.string().required("Required"),
+    image: Yup.string().url("Must be a valid URL").required("Required"),
 });
 
 const Add_a_pet = () => {
-    const [uploading, setUploading] = useState(false);
-    const [uploadError, setUploadError] = useState("");
-
-    const handleImageUpload = async (file) => {
-        const formData = new FormData();
-        formData.append("file", file);
-        formData.append("upload_preset", "YOUR_CLOUDINARY_UPLOAD_PRESET");
-
+    const handleSubmit = async (values, { resetForm }) => {
         try {
-            setUploading(true);
-            const res = await axios.post(
-                `https://api.cloudinary.com/v1_1/YOUR_CLOUDINARY_CLOUD_NAME/image/upload`,
-                formData
-            );
-            setUploading(false);
-            return res.data.secure_url;
-        } catch (err) {
-            setUploading(false);
-            setUploadError("Image upload failed.");
-            return null;
-        }
-    };
-
-    const handleSubmit = async (values, { setSubmitting, setErrors, resetForm }) => {
-        const imageUrl = await handleImageUpload(values.petImage);
-
-        if (!imageUrl) {
-            setErrors({ petImage: "Failed to upload image" });
-            setSubmitting(false);
-            return;
-        }
-
-        const petData = {
-            petName: values.petName,
-            petAge: values.petAge,
-            petLocation: values.petLocation,
-            shortDescription: values.shortDescription,
-            longDescription: values.longDescription,
-            petCategory: values.petCategory.value,
-            imageUrl,
-            addedAt: new Date().toISOString(),
-            adopted: false,
-            // Include user info here if needed (e.g., userId)
-        };
-
-        try {
-            // Replace with your API endpoint
-            await axios.post("/api/pets", petData);
+            const response = await axios.post("/api/pets", {
+                ...values,
+                dateAdded: new Date().toISOString(),
+            });
+            console.log("Pet added successfully:", response.data);
             resetForm();
-            alert("Pet added successfully!");
         } catch (error) {
-            setErrors({ submit: "Failed to submit form. Please try again." });
+            console.error("Error adding pet:", error);
         }
-
-        setSubmitting(false);
     };
 
     return (
-        <Box maxWidth={600} mx="auto" mt={5}>
-            <Typography variant="h4" gutterBottom>
+        <Box
+            maxWidth="900px"
+            mx="auto"
+            mt={4}
+            p={4}
+            boxShadow={3}
+            borderRadius={2}
+            bgcolor="#fff"
+        >
+            <Typography variant="h4" gutterBottom align="center" fontWeight="bold">
                 Add a Pet
             </Typography>
 
             <Formik
-                initialValues={{
-                    petName: "",
-                    petAge: "",
-                    petCategory: null,
-                    petLocation: "",
-                    shortDescription: "",
-                    longDescription: "",
-                    petImage: null,
-                }}
+                initialValues={initialValues}
                 validationSchema={validationSchema}
                 onSubmit={handleSubmit}
             >
-                {({ setFieldValue, isSubmitting, errors }) => (
-                    <Form noValidate>
-                        {/* Pet Name */}
-                        <Box mb={2}>
-                            <Field
-                                name="petName"
-                                as={TextField}
-                                label="Pet Name"
+                {({ values, setFieldValue, touched, errors }) => (
+                    <Form>
+                        {/* Two-column layout */}
+                        <Box
+                            display="grid"
+                            gridTemplateColumns="repeat(2, 1fr)"
+                            gap={3}
+                            mb={3}
+                        >
+                            {[
+                                { name: "name", label: "Name" },
+                                { name: "age", label: "Age" },
+                                { name: "location", label: "Location" },
+                                { name: "breed", label: "Breed" },
+                                { name: "gender", label: "Gender" },
+                                { name: "size", label: "Size" },
+                                {
+                                    name: "color",
+                                    label: "Color",
+                                    inputProps: {
+                                        inputMode: "text",
+                                        pattern: "[A-Za-z\\s]+",
+                                        title: "Only letters and spaces allowed",
+                                    },
+                                },
+                                { name: "image", label: "Image URL" },
+                            ].map(({ name, label, inputProps }) => (
+                                <Box key={name}>
+                                    <Field
+                                        as={TextField}
+                                        fullWidth
+                                        name={name}
+                                        label={label}
+                                        error={touched[name] && Boolean(errors[name])}
+                                        helperText={<ErrorMessage name={name} />}
+                                        inputProps={inputProps}
+                                    />
+                                </Box>
+                            ))}
+                        </Box>
+
+                        <Box mb={3}>
+                            <FormControl
                                 fullWidth
-                                error={!!errors.petName}
-                                helperText={<ErrorMessage name="petName" />}
-                            />
+                                error={touched.category && Boolean(errors.category)}
+                            >
+                                <InputLabel id="category-label">Category</InputLabel>
+                                <Field
+                                    name="category"
+                                    as={Select}
+                                    labelId="category-label"
+                                    label="Category"
+                                >
+                                    <MenuItem value="dogs">Dogs</MenuItem>
+                                    <MenuItem value="cats">Cats</MenuItem>
+                                    <MenuItem value="birds">Birds</MenuItem>
+                                </Field>
+                                <FormHelperText>
+                                    <ErrorMessage name="category" />
+                                </FormHelperText>
+                            </FormControl>
                         </Box>
 
-                        {/* Pet Age */}
-                        <Box mb={2}>
+                        <Box mb={3}>
                             <Field
-                                name="petAge"
                                 as={TextField}
-                                label="Pet Age"
                                 fullWidth
-                                error={!!errors.petAge}
-                                helperText={<ErrorMessage name="petAge" />}
-                            />
-                        </Box>
-
-                        {/* Pet Category - react-select */}
-                        <Box mb={2}>
-                            <Typography variant="body1">Pet Category</Typography>
-                            <Select
-                                options={petCategories}
-                                onChange={(option) => setFieldValue("petCategory", option)}
-                                styles={{
-                                    control: (base) => ({
-                                        ...base,
-                                        backgroundColor: "white",      // 👈 sets white background
-                                    }),
-                                    menu: (base) => ({
-                                        ...base,
-                                        backgroundColor: "white",      // 👈 dropdown list background
-                                    }),
-                                }}
-                            />
-                            <div style={{ color: "red", fontSize: "0.8rem" }}>
-                                <ErrorMessage name="petCategory" />
-                            </div>
-                        </Box>
-
-                        {/* Pet Location */}
-                        <Box mb={2}>
-                            <Field
-                                name="petLocation"
-                                as={TextField}
-                                label="Pickup Location"
-                                fullWidth
-                                error={!!errors.petLocation}
-                                helperText={<ErrorMessage name="petLocation" />}
-                            />
-                        </Box>
-
-                        {/* Short Description */}
-                        <Box mb={2}>
-                            <Field
+                                multiline
+                                rows={2}
                                 name="shortDescription"
-                                as={TextField}
                                 label="Short Description"
-                                fullWidth
-                                error={!!errors.shortDescription}
+                                error={touched.shortDescription && Boolean(errors.shortDescription)}
                                 helperText={<ErrorMessage name="shortDescription" />}
                             />
                         </Box>
 
-                        {/* Long Description */}
-                        <Box mb={2}>
+                        <Box mb={3}>
                             <Field
-                                name="longDescription"
                                 as={TextField}
-                                label="Long Description"
+                                fullWidth
                                 multiline
                                 rows={4}
-                                fullWidth
-                                error={!!errors.longDescription}
+                                name="longDescription"
+                                label="Long Description"
+                                error={touched.longDescription && Boolean(errors.longDescription)}
                                 helperText={<ErrorMessage name="longDescription" />}
                             />
                         </Box>
 
-                        {/* Pet Image */}
-                        <Box mb={2}>
-                            <Typography variant="body1">Pet Image</Typography>
-                            <input
-                                type="file"
-                                accept="image/*"
-                                onChange={(event) =>
-                                    setFieldValue("petImage", event.currentTarget.files[0])
-                                }
-                            />
-                            <div style={{ color: "red", fontSize: "0.8rem" }}>
-                                <ErrorMessage name="petImage" />
-                                {uploadError && <div>{uploadError}</div>}
-                            </div>
-                        </Box>
+                        {/* Checkboxes in row */}
+                        <FormGroup row sx={{ mb: 3 }}>
+                            {[
+                                { name: "goodWithKids", label: "Good With Kids" },
+                                { name: "goodWithOtherPets", label: "Good With Other Pets" },
+                                { name: "vaccinated", label: "Vaccinated" },
+                                { name: "neutered", label: "Neutered" },
+                            ].map(({ name, label }) => (
+                                <FormControlLabel
+                                    key={name}
+                                    control={
+                                        <Field
+                                            as={Checkbox}
+                                            name={name}
+                                            color="primary"
+                                            checked={values[name]}
+                                        />
+                                    }
+                                    label={label}
+                                />
+                            ))}
+                        </FormGroup>
 
-                        {/* Submit */}
-                        <Box mt={3}>
+                        <Box mt={4}>
                             <Button
                                 type="submit"
-                                variant="contained"
-                                color="primary"
-                                disabled={isSubmitting || uploading}
+                                fullWidth
+                                variant="outlined"
+                                sx={{
+                                    borderColor: "orange",
+                                    color: "orange",
+                                    fontWeight: "bold",
+                                    "&:hover": {
+                                        backgroundColor: "orange",
+                                        color: "white",
+                                        borderColor: "orange",
+                                    },
+                                }}
                             >
-                                {isSubmitting || uploading ? "Submitting..." : "Submit"}
+                                Submit
                             </Button>
-                            {errors.submit && (
-                                <Typography color="error" mt={2}>
-                                    {errors.submit}
-                                </Typography>
-                            )}
                         </Box>
                     </Form>
                 )}

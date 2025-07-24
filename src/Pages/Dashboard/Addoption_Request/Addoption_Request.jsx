@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import {
     Table,
     TableHead,
@@ -10,123 +10,158 @@ import {
     Paper,
     Box,
 } from "@mui/material";
-// import axios from "axios"; // ✅ Uncomment when enabling real API calls
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import useAxios from "../../../Hooks/useAxios";
+import Spinner from "../../../Shared/Loader/Spinner";
+import useAuth from "../../../Hooks/useAuth";
+import Swal from "sweetalert2";
 
 const Addoption_Request = () => {
-    // ✅ Dummy data to prevent `map` errors during development
-    const [requests, setRequests] = useState([
-        {
-            _id: "req123",
-            petName: "Charlie",
-            requesterName: "John Doe",
-            requesterEmail: "john@example.com",
-            requesterPhone: "1234567890",
-            requesterLocation: "Dhaka",
-            status: "pending",
-        },
-        {
-            _id: "req456",
-            petName: "Bella",
-            requesterName: "Jane Smith",
-            requesterEmail: "jane@example.com",
-            requesterPhone: "9876543210",
-            requesterLocation: "Chittagong",
-            status: "accepted",
-        },
-    ]);
+    const axios = useAxios();
+    const queryClient = useQueryClient();
+    const { user, loading } = useAuth();
 
-    const [loading, setLoading] = useState(false); // ✅ Set to false to skip loading state
+    const [updatingId, setUpdatingId] = useState(null);
 
-    // const { user } = useAuth(); // ✅ Uncomment when using auth
-    // const loggedInUserEmail = user?.email;
-    const loggedInUserEmail = "user@example.com"; // ✅ Replace this with real user email later
-
-    // ✅ Fetch requests from API (disabled for now)
-    /*
-    useEffect(() => {
-        const fetchRequests = async () => {
-            try {
-                const res = await axios.get(`/api/adoption-requests?ownerEmail=${loggedInUserEmail}`);
-                setRequests(res.data);
-            } catch (err) {
-                console.error("Error fetching requests", err);
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        fetchRequests();
-    }, [loggedInUserEmail]);
-    */
-
-    // ✅ Send status update to server (disabled for now)
-    const handleUpdateStatus = async (requestId, status) => {
-        try {
-            // await axios.patch(`/api/adoption-requests/${requestId}`, { status }); // ✅ Enable this when API is ready
-            // ✅ Update status locally
-            setRequests((prev) =>
-                prev.map((r) => (r._id === requestId ? { ...r, status } : r))
-            );
-        } catch (err) {
-            console.error("Error updating status", err);
-        }
+    // Fetch function
+    const fetchAdoptionRequests = async () => {
+        const res = await axios.get(`/pet-listing?email=${user?.email}`);
+        return res.data.pets || [];
     };
+
+    // React Query: fetch requests after user is available
+    const {
+        data: requests = [],
+        isPending,
+        isError,
+    } = useQuery({
+        queryKey: ['adoption-requests', user?.email],
+        queryFn: fetchAdoptionRequests,
+        enabled: !!user?.email, // only run when user is ready
+    });
+
+    // React Mutation: update request status
+    const mutation = useMutation({
+        mutationFn: async ({ requestId, status }) => {
+            const res = await axios.patch(`/pet-listing/${requestId}`, { status });
+            if (res.data.success) {
+                Swal.fire({
+                    icon: "success",
+                    title: `${res?.data?.message}`,
+                    showConfirmButton: false,
+                    timer: 1500
+                });
+           };
+            return res.data;
+        },
+        onMutate: ({ requestId }) => {
+            setUpdatingId(requestId);
+        },
+        onSettled: () => {
+            setUpdatingId(null);
+            queryClient.invalidateQueries(['adoption-requests', user?.email]);
+        },
+    });
+
+    const handleUpdateStatus = (requestId, status) => {
+        mutation.mutate({ requestId, status });
+    };
+
+    // Show loading spinner while auth is loading
+    if (loading) {
+        return (
+            <Box display="flex" justifyContent="center" alignItems="center" minHeight="50vh">
+                <Spinner />
+            </Box>
+        );
+    }
 
     return (
         <Box mt={4}>
-            <Typography variant="h5" gutterBottom>
-                Adoption Requests
-            </Typography>
+            {isPending && (
+                <Box display="flex" justifyContent="center" py={4}>
+                    <Spinner />
+                </Box>
+            )}
 
-            {loading ? (
-                <Typography>Loading...</Typography>
-            ) : requests.length === 0 ? (
-                <Typography>No adoption requests found.</Typography>
-            ) : (
+            {isError && (
+                <Typography color="error" align="center" py={4}>
+                    Failed to load requests.
+                </Typography>
+            )}
+
+            {!isPending && !isError && requests.length === 0 && (
+                <Box textAlign="center" py={4}>
+                    <Typography variant="body1">No adoption requests found.</Typography>
+                </Box>
+            )}
+
+            {!isPending && !isError && requests.length > 0 && (
                 <Paper elevation={3}>
                     <Table>
                         <TableHead>
                             <TableRow>
-                                <TableCell>Pet Name</TableCell>
-                                <TableCell>Name</TableCell>
-                                <TableCell>Email</TableCell>
-                                <TableCell>Phone</TableCell>
-                                <TableCell>Location</TableCell>
-                                <TableCell>Status</TableCell>
-                                <TableCell>Action</TableCell>
+                                <TableCell><strong>Pet Name</strong></TableCell>
+                                <TableCell><strong>Pet ID</strong></TableCell>
+                                <TableCell><strong>Requester Name</strong></TableCell>
+                                <TableCell><strong>Requester Email</strong></TableCell>
+                                <TableCell><strong>Requester Phone</strong></TableCell>
+                                <TableCell><strong>Requester Location</strong></TableCell>
+                                <TableCell><strong>Request Date</strong></TableCell>
+                                <TableCell><strong>Status</strong></TableCell>
+                                <TableCell><strong>Action</strong></TableCell>
                             </TableRow>
                         </TableHead>
                         <TableBody>
                             {requests.map((req) => (
-                                <TableRow key={req._id}>
-                                    <TableCell>{req.petName}</TableCell>
-                                    <TableCell>{req.requesterName}</TableCell>
-                                    <TableCell>{req.requesterEmail}</TableCell>
-                                    <TableCell>{req.requesterPhone}</TableCell>
-                                    <TableCell>{req.requesterLocation}</TableCell>
+                                <TableRow key={req?._id}>
+                                    <TableCell>{req?.name}</TableCell>
+                                    <TableCell>{req?._id}</TableCell>
+                                    <TableCell>{req?.RequesterName || "N/A"}</TableCell>
+                                    <TableCell>{req?.RequesterEmail || "N/A"}</TableCell>
+                                    <TableCell>{req?.RequesterPhone || "N/A"}</TableCell>
+                                    <TableCell>{req?.RequesterAddress || "N/A"}</TableCell>
                                     <TableCell>
-                                        <strong>{req.status}</strong>
+                                        {req?.requestDate
+                                            ? new Date(req.requestDate).toLocaleString()
+                                            : 'N/A'}
                                     </TableCell>
                                     <TableCell>
-                                        {req.status === "pending" ? (
+                                        <span
+                                            className={`font-semibold ${req.adoptionStatus === "Pending"
+                                                    ? "text-orange-500"
+                                                    : req.adoptionStatus === "Rejected"
+                                                        ? "text-red-500"
+                                                        : "text-green-500"
+                                                }`}
+                                        >
+                                            {req.adoptionStatus}
+                                        </span>
+                                    </TableCell>
+                                    <TableCell>
+                                        {req.adoptionStatus === "Pending" ? (
                                             <>
                                                 <Button
                                                     size="small"
                                                     color="success"
-                                                    onClick={() => handleUpdateStatus(req._id, "accepted")}
+                                                    onClick={() => handleUpdateStatus(req._id, "Accepted")}
+                                                    disabled={mutation.isPending && updatingId === req._id}
                                                 >
                                                     Accept
                                                 </Button>
                                                 <Button
                                                     size="small"
                                                     color="error"
-                                                    onClick={() => handleUpdateStatus(req._id, "rejected")}
+                                                    onClick={() => handleUpdateStatus(req._id, "Rejected")}
+                                                    disabled={mutation.isPending && updatingId === req._id}
                                                 >
                                                     Reject
                                                 </Button>
                                             </>
                                         ) : (
-                                            <Typography color="textSecondary">{req.status}</Typography>
+                                            <Typography component="span" className="text-gray-500">
+                                                {req.adoptionStatus}
+                                            </Typography>
                                         )}
                                     </TableCell>
                                 </TableRow>
