@@ -15,7 +15,10 @@ import {
 } from "@mui/material";
 import { Formik, Form, Field, ErrorMessage } from "formik";
 import * as Yup from "yup";
-import axios from "axios";
+import useAxios from "../../../Hooks/useAxios";
+import useAuth from "../../../Hooks/useAuth";
+import Swal from "sweetalert2";
+import { useNavigate } from "react-router";
 
 const initialValues = {
     name: "",
@@ -53,19 +56,36 @@ const validationSchema = Yup.object({
 });
 
 const Add_a_pet = () => {
+    const axios = useAxios();
+    const { user } = useAuth();
+    const navigate = useNavigate();
     const handleSubmit = async (values, { resetForm }) => {
+        // console.log("Form data:", values); // ✅ First, log the data
+
         try {
-            const response = await axios.post("/api/pets", {
+            const response = await axios.post("/pet-listing", {
                 ...values,
+                addedBy: user?.email,
                 dateAdded: new Date().toISOString(),
             });
-            console.log("Pet added successfully:", response.data);
+            // console.log("Pet added successfully:", response.data);
+            if (response.data.success) { 
+                Swal.fire({
+                    icon: "success",
+                    title: `${response.data.message}`,
+                    showConfirmButton: false,
+                    timer: 1500
+                });
+                navigate('/my-added-pets');
+            }
+            resetForm();
+
+            // console.log("Pet added successfully:", data);
             resetForm();
         } catch (error) {
             console.error("Error adding pet:", error);
         }
     };
-
     return (
         <Box
             maxWidth="900px"
