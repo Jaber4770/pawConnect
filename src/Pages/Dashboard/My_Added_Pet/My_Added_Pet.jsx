@@ -81,10 +81,6 @@ const My_Added_Pet = () => {
 
     return (
         <Box p={2}>
-            <Typography variant="h4" gutterBottom>
-                My Added Pets
-            </Typography>
-
             <MuiTable>
                 <TableHead>
                     <TableRow>

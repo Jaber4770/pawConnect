@@ -80,9 +80,9 @@ const All_Pets = () => {
                                     </TableCell>
                                     <TableCell>{pet.location}</TableCell>
                                     <TableCell>{pet.category}</TableCell>
-                                    <TableCell>{isAdopted ? requester.name || "N/A" : "N/A"}</TableCell>
-                                    <TableCell>{isAdopted ? requester.phone || "N/A" : "N/A"}</TableCell>
-                                    <TableCell>{isAdopted ? requester.location || "N/A" : "N/A"}</TableCell>
+                                    <TableCell>{isAdopted ? pet.RequesterName || "N/A" : "N/A"}</TableCell>
+                                    <TableCell>{isAdopted ? pet.RequesterPhone || "N/A" : "N/A"}</TableCell>
+                                    <TableCell>{isAdopted ? pet.location || "N/A" : "N/A"}</TableCell>
                                 </TableRow>
                             );
                         })}
