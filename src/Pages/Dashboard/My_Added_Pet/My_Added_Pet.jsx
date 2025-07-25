@@ -1,165 +1,83 @@
-import React, { useState, useMemo } from "react";
+import React, { useState } from "react";
 import {
-    useReactTable,
-    getCoreRowModel,
-    getSortedRowModel,
-    getPaginationRowModel,
-} from "@tanstack/react-table";
-
+    useQuery,
+    useMutation,
+    useQueryClient,
+} from "@tanstack/react-query";
 import {
     Box,
     Button,
     Dialog,
     DialogActions,
     DialogContent,
-    DialogContentText,
     DialogTitle,
+    TextField,
+    Typography,
     Table as MuiTable,
     TableBody,
     TableCell,
     TableHead,
     TableRow,
-    Typography,
+    Backdrop,
 } from "@mui/material";
+import useAxios from "../../../Hooks/useAxios";
+import useAuth from "../../../Hooks/useAuth";
+import Spinner from "../../../Shared/Loader/Spinner";
+
+
 
 const My_Added_Pet = () => {
-    // Dummy pet data for now (replace with API data later)
-    const [pets, setPets] = useState([
-        {
-            id: "1",
-            name: "Buddy",
-            category: "Dog",
-            image:
-                "https://images.dog.ceo/breeds/hound-afghan/n02088094_1003.jpg",
-            adopted: false,
-        },
-        {
-            id: "2",
-            name: "Whiskers",
-            category: "Cat",
-            image:
-                "https://cdn2.thecatapi.com/images/MTY3ODIyMQ.jpg",
-            adopted: true,
-        },
-        // Add more dummy pets as needed
-    ]);
+    const axios = useAxios();
+    const { user, loading } = useAuth();
+    const queryClient = useQueryClient();
 
-    const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-    const [petToDelete, setPetToDelete] = useState(null);
+    if (loading) return <Spinner></Spinner>
 
-    const handleDeleteClick = (pet) => {
-        setPetToDelete(pet);
-        setDeleteDialogOpen(true);
+
+    // ✅ Now axios is in scope
+    const fetchPets = async () => {
+        const res = await axios.get(`/pet-listing?email=${user?.email}`);
+        // console.log(res.data.pets);
+        return res?.data?.pets;
     };
 
-    const handleDeleteConfirm = () => {
-        // For now, just remove locally from dummy data
-        setPets((prev) => prev.filter((p) => p.id !== petToDelete.id));
-        setDeleteDialogOpen(false);
+    const [editModalOpen, setEditModalOpen] = useState(false);
+    const [selectedPet, setSelectedPet] = useState(null);
 
-        // TODO: Replace above with API call to delete pet from DB
-    };
-
-    const handleDeleteCancel = () => {
-        setDeleteDialogOpen(false);
-        setPetToDelete(null);
-    };
-
-    const handleAdoptedToggle = (petId) => {
-        setPets((prev) =>
-            prev.map((p) =>
-                p.id === petId ? { ...p, adopted: true } : p
-            )
-        );
-
-        // TODO: Replace above with API call to update 'adopted' status in DB
-    };
-
-    // Table columns definition
-    const columns = useMemo(
-        () => [
-            {
-                accessorKey: "serial",
-                header: "S/N",
-                cell: (info) => info.row.index + 1,
-            },
-            {
-                accessorKey: "name",
-                header: "Pet Name",
-            },
-            {
-                accessorKey: "category",
-                header: "Pet Category",
-            },
-            {
-                accessorKey: "image",
-                header: "Pet Image",
-                cell: (info) => (
-                    <img
-                        src={info.getValue()}
-                        alt={info.row.original.name}
-                        style={{ width: 60, height: 60, objectFit: "cover", borderRadius: 4 }}
-                    />
-                ),
-            },
-            {
-                accessorKey: "adopted",
-                header: "Adoption Status",
-                cell: (info) =>
-                    info.getValue() ? "Adopted" : "Not Adopted",
-            },
-            {
-                id: "actions",
-                header: "Actions",
-                cell: (info) => {
-                    const pet = info.row.original;
-                    return (
-                        <>
-                            <Button
-                                size="small"
-                                variant="outlined"
-                                onClick={() =>
-                                    alert(`Redirect to update page for pet id ${pet.id}`)
-                                }
-                                sx={{ mr: 1 }}
-                            >
-                                Update
-                            </Button>
-                            <Button
-                                size="small"
-                                variant="outlined"
-                                color="error"
-                                onClick={() => handleDeleteClick(pet)}
-                                sx={{ mr: 1 }}
-                            >
-                                Delete
-                            </Button>
-                            {!pet.adopted && (
-                                <Button
-                                    size="small"
-                                    variant="contained"
-                                    color="success"
-                                    onClick={() => handleAdoptedToggle(pet.id)}
-                                >
-                                    Adopted
-                                </Button>
-                            )}
-                        </>
-                    );
-                },
-            },
-        ],
-        []
-    );
-
-    const table = useReactTable({
-        data: pets,
-        columns,
-        getCoreRowModel: getCoreRowModel(),
-        getSortedRowModel: getSortedRowModel(),
-        getPaginationRowModel: getPaginationRowModel(),
-        initialState: { pagination: { pageSize: 10 } },
+    const { data: pets = [], isLoading } = useQuery({
+        queryKey: ["pets", user.email],
+        queryFn: fetchPets,
     });
+
+    const updatePetMutation = useMutation({
+        mutationFn: ({ id, email, updatedPet }) =>
+            axios.put(`/api/pets/${id}`, { email, ...updatedPet }),
+        onSuccess: () => {
+            queryClient.invalidateQueries(["pets", user.email]);
+            handleCloseEditModal();
+        },
+    });
+
+    const handleOpenEditModal = (pet) => {
+        setSelectedPet(pet);
+        setEditModalOpen(true);
+    };
+
+    const handleCloseEditModal = () => {
+        setEditModalOpen(false);
+        setSelectedPet(null);
+    };
+
+    const handleEditChange = (field, value) => {
+        setSelectedPet((prev) => ({ ...prev, [field]: value }));
+    };
+
+    const handleSaveChanges = () => {
+        const { id, ...updatedPet } = selectedPet;
+        updatePetMutation.mutate({ id, email: user.email, updatedPet });
+    };
+
+    if (isLoading) return <Typography><Spinner></Spinner></Typography>;
 
     return (
         <Box p={2}>
@@ -169,84 +87,100 @@ const My_Added_Pet = () => {
 
             <MuiTable>
                 <TableHead>
-                    {table.getHeaderGroups().map((headerGroup) => (
-                        <TableRow key={headerGroup.id}>
-                            {headerGroup.headers.map((header) => (
-                                <TableCell
-                                    key={header.id}
-                                    onClick={header.column.getToggleSortingHandler()}
-                                    sx={{ cursor: "pointer", userSelect: "none" }}
-                                >
-                                    {typeof header.column.columnDef.header === "function"
-                                        ? header.column.columnDef.header(header.getContext())
-                                        : header.column.columnDef.header}
-                                    {{
-                                        asc: " 🔼",
-                                        desc: " 🔽",
-                                    }[header.column.getIsSorted()] ?? null}
-                                </TableCell>
-                            ))}
-                        </TableRow>
-                    ))}
+                    <TableRow>
+                        <TableCell>Name</TableCell>
+                        <TableCell>Requester Name</TableCell>
+                        <TableCell>Requester Phone</TableCell>
+                        <TableCell>Image</TableCell>
+                        <TableCell>Category</TableCell>
+                        <TableCell>Status</TableCell>
+                        <TableCell>Actions</TableCell>
+                    </TableRow>
                 </TableHead>
                 <TableBody>
-                    {table.getRowModel().rows.map((row) => (
-                        <TableRow key={row.id}>
-                            {row.getVisibleCells().map((cell) => (
-                                <TableCell key={cell.id}>
-                                    {cell.renderCell
-                                        ? cell.renderCell()
-                                        : cell.getValue()}
-                                </TableCell>
-                            ))}
+                    {pets.map((pet) => (
+                        <TableRow key={pet._id}>
+                            <TableCell>{pet.name}</TableCell>
+                            <TableCell>
+                                {pet.adoptionStatus === "Accepted" ? (
+                                    <span className="font-medium text-gray-700">{pet.RequesterName || "N/A"}</span>
+                                ) : (
+                                    "-"
+                                )}
+                            </TableCell>
+                            <TableCell>{pet.RequesterPhone}</TableCell>
+                            <TableCell>
+                                <img
+                                    src={pet.image}
+                                    alt={pet.name}
+                                    style={{ width: 60, height: 60, objectFit: "cover" }}
+                                />
+                            </TableCell>
+                            <TableCell>{pet.category}</TableCell>
+                            <TableCell>
+                                <span
+                                    className={`font-semibold ${pet.adoptionStatus === "Rejected"
+                                            ? "text-red-500"
+                                            : pet.adoptionStatus === "Accepted"
+                                                ? "text-green-500"
+                                                : pet.adoptionStatus === "Available"
+                                                    ? "text-orange-500"
+                                                    : ""
+                                        }`}
+                                >
+                                    {pet.adoptionStatus}
+                                </span>
+                            </TableCell>
+                            <TableCell>
+                                <Button variant="outlined"
+                                    disabled={pet.adoptionStatus === "Accepted"}
+                                    onClick={() => handleOpenEditModal(pet)}>
+                                    Edit
+                                </Button>
+                            </TableCell>
                         </TableRow>
                     ))}
                 </TableBody>
             </MuiTable>
 
-            {/* Pagination controls */}
-            <Box mt={2} display="flex" justifyContent="space-between" alignItems="center">
-                <Button
-                    onClick={() => table.previousPage()}
-                    disabled={!table.getCanPreviousPage()}
-                >
-                    Previous
-                </Button>
-                <Typography>
-                    Page {table.getState().pagination.pageIndex + 1} of{" "}
-                    {table.getPageCount()}
-                </Typography>
-                <Button
-                    onClick={() => table.nextPage()}
-                    disabled={!table.getCanNextPage()}
-                >
-                    Next
-                </Button>
-            </Box>
-
-            {/* Delete confirmation modal */}
-            <Dialog open={deleteDialogOpen} onClose={handleDeleteCancel}>
-                <DialogTitle>Delete Pet</DialogTitle>
+            {/* Edit Modal */}
+            <Dialog
+                open={editModalOpen}
+                onClose={handleCloseEditModal}
+                BackdropComponent={Backdrop}
+                BackdropProps={{ style: { backdropFilter: "blur(5px)" } }}
+            >
+                <DialogTitle>Edit Pet</DialogTitle>
                 <DialogContent>
-                    <DialogContentText>
-                        Are you sure you want to delete the pet "
-                        {petToDelete?.name}"?
-                    </DialogContentText>
+                    <TextField
+                        margin="dense"
+                        label="Pet Name"
+                        fullWidth
+                        value={selectedPet?.name || ""}
+                        onChange={(e) => handleEditChange("name", e.target.value)}
+                    />
+                    <TextField
+                        margin="dense"
+                        label="Image URL"
+                        fullWidth
+                        value={selectedPet?.image || ""}
+                        onChange={(e) => handleEditChange("image", e.target.value)}
+                    />
+                    <TextField
+                        margin="dense"
+                        label="Category"
+                        fullWidth
+                        value={selectedPet?.category || ""}
+                        onChange={(e) => handleEditChange("category", e.target.value)}
+                    />
                 </DialogContent>
                 <DialogActions>
-                    <Button onClick={handleDeleteCancel}>No</Button>
-                    <Button onClick={handleDeleteConfirm} color="error" autoFocus>
-                        Yes
+                    <Button onClick={handleCloseEditModal}>Cancel</Button>
+                    <Button onClick={handleSaveChanges} variant="contained">
+                        Save
                     </Button>
                 </DialogActions>
             </Dialog>
-
-            {/* 
-        TODO when API ready:
-        1. Replace dummy data `pets` state with data fetched from your backend API.
-        2. Implement update navigation on Update button (using react-router or similar).
-        3. Implement delete and adopted status update API calls inside handlers.
-      */}
         </Box>
     );
 };
