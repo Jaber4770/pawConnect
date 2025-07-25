@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React from "react";
 import {
     Box,
     Typography,
@@ -8,153 +8,87 @@ import {
     TableRow,
     TableCell,
     Paper,
-    Button,
 } from "@mui/material";
-// import axios from "axios"; // ✅ Uncomment when integrating API
+import { useQuery } from "@tanstack/react-query";
+import useAxios from "../../../Hooks/useAxios";
 
 const All_Pets = () => {
-    const [pets, setPets] = useState([
-        {
-            _id: "1",
-            name: "Bella",
-            type: "Dog",
-            breed: "Labrador",
-            age: 2,
-            status: "not adopted",
-            ownerEmail: "owner1@example.com",
-        },
-        {
-            _id: "2",
-            name: "Milo",
-            type: "Cat",
-            breed: "Persian",
-            age: 1,
-            status: "adopted",
-            ownerEmail: "owner2@example.com",
-        },
-    ]);
-    const [loading, setLoading] = useState(false);
+    const axios = useAxios();
 
-    // ✅ Replace with real API fetch
-    /*
-    useEffect(() => {
-        const fetchPets = async () => {
-            try {
-                setLoading(true);
-                const res = await axios.get("/api/pets");
-                setPets(res.data);
-            } catch (err) {
-                console.error("Error fetching pets", err);
-            } finally {
-                setLoading(false);
-            }
-        };
-        fetchPets();
-    }, []);
-    */
-
-    const handleDelete = (id) => {
-        if (confirm("Are you sure you want to delete this pet?")) {
-            setPets((prev) => prev.filter((p) => p._id !== id));
-            // await axios.delete(`/api/pets/${id}`);
-        }
+    const fetchPets = async () => {
+        const res = await axios.get("/pet-listing"); // Adjust API path accordingly
+        return res.data.pets; // Expect your API returns an array of pets with needed fields
     };
 
-    const handleStatusToggle = (id) => {
-        setPets((prev) =>
-            prev.map((p) =>
-                p._id === id
-                    ? { ...p, status: p.status === "adopted" ? "not adopted" : "adopted" }
-                    : p
-            )
-        );
-        // await axios.patch(`/api/pets/${id}/status-toggle`);
-    };
+    const { data: pets = [], isLoading, isError } = useQuery({
+        queryKey: ['pets'],
+        queryFn: fetchPets,
+    });
 
-    const handleUpdate = (id) => {
-        alert(`Update pet info for ID: ${id}`);
-        // Navigate to edit page or open modal
-    };
+    if (isLoading) return <Typography>Loading...</Typography>;
+    if (isError) return <Typography>Error fetching pets.</Typography>;
+    if (pets.length === 0) return <Typography>No pets found.</Typography>;
 
     return (
         <Box mt={4}>
-            <Typography variant="h5" gutterBottom>
-                All Pets (Admin)
-            </Typography>
+            <Paper elevation={3}>
+                <Table>
+                    <TableHead>
+                        <TableRow>
+                            <TableCell>Pet Name</TableCell>
+                            <TableCell>Image</TableCell>
+                            <TableCell>Adoption Status</TableCell>
+                            <TableCell>Date Added</TableCell>
+                            <TableCell>Location</TableCell>
+                            <TableCell>Category</TableCell>
+                            <TableCell>Requester Name</TableCell>
+                            <TableCell>Requester Phone</TableCell>
+                            <TableCell>Requester Location</TableCell>
+                        </TableRow>
+                    </TableHead>
+                    <TableBody>
+                        {pets.map((pet) => {
+                            const isAdopted = pet.adoptionStatus === "Accepted";
+                            const requester = isAdopted ? pet.requester || {} : {};
 
-            {loading ? (
-                <Typography>Loading...</Typography>
-            ) : pets.length === 0 ? (
-                <Typography>No pets found.</Typography>
-            ) : (
-                <Paper elevation={3}>
-                    <Table>
-                        <TableHead>
-                            <TableRow>
-                                <TableCell>Pet Name</TableCell>
-                                <TableCell>Type</TableCell>
-                                <TableCell>Breed</TableCell>
-                                <TableCell>Age</TableCell>
-                                <TableCell>Status</TableCell>
-                                <TableCell>Owner Email</TableCell>
-                                <TableCell>Action</TableCell>
-                            </TableRow>
-                        </TableHead>
-                        <TableBody>
-                            {pets.map((pet) => (
+                            return (
                                 <TableRow key={pet._id}>
                                     <TableCell>{pet.name}</TableCell>
-                                    <TableCell>{pet.type}</TableCell>
-                                    <TableCell>{pet.breed}</TableCell>
-                                    <TableCell>{pet.age}</TableCell>
+                                    <TableCell>
+                                        <img
+                                            src={pet.image}
+                                            alt={pet.name}
+                                            style={{ width: 60, height: 60, objectFit: "cover" }}
+                                        />
+                                    </TableCell>
                                     <TableCell>
                                         <strong
                                             style={{
                                                 color:
-                                                    pet.status === "adopted"
+                                                    pet.adoptionStatus === "Accepted"
                                                         ? "green"
-                                                        : "orange",
+                                                        : pet.adoptionStatus === "Rejected"
+                                                            ? "red"
+                                                            : "orange",
                                             }}
                                         >
-                                            {pet.status}
+                                            {pet.adoptionStatus}
                                         </strong>
                                     </TableCell>
-                                    <TableCell>{pet.ownerEmail}</TableCell>
                                     <TableCell>
-                                        <Button
-                                            size="small"
-                                            color="primary"
-                                            onClick={() => handleUpdate(pet._id)}
-                                        >
-                                            Edit
-                                        </Button>
-                                        <Button
-                                            size="small"
-                                            color={
-                                                pet.status === "adopted"
-                                                    ? "warning"
-                                                    : "success"
-                                            }
-                                            onClick={() => handleStatusToggle(pet._id)}
-                                        >
-                                            {pet.status === "adopted"
-                                                ? "Mark as Not Adopted"
-                                                : "Mark as Adopted"}
-                                        </Button>
-                                        <Button
-                                            size="small"
-                                            color="error"
-                                            onClick={() => handleDelete(pet._id)}
-                                        >
-                                            Delete
-                                        </Button>
+                                        {new Date(pet.dateAdded).toLocaleDateString()}
                                     </TableCell>
+                                    <TableCell>{pet.location}</TableCell>
+                                    <TableCell>{pet.category}</TableCell>
+                                    <TableCell>{isAdopted ? requester.name || "N/A" : "N/A"}</TableCell>
+                                    <TableCell>{isAdopted ? requester.phone || "N/A" : "N/A"}</TableCell>
+                                    <TableCell>{isAdopted ? requester.location || "N/A" : "N/A"}</TableCell>
                                 </TableRow>
-                            ))}
-                        </TableBody>
-                    </Table>
-                </Paper>
-            )}
+                            );
+                        })}
+                    </TableBody>
+                </Table>
+            </Paper>
         </Box>
     );
 };
