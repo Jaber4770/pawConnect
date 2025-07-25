@@ -62,12 +62,12 @@ export default function DashboardLayout() {
             <Toolbar>
                 <Link to={'/dashboard'}>
                     <Typography variant="h6"
-                        sx={{ fontSize: '32px', color: 'orange', fontWeight: 'bold' }}
+                        sx={{ fontSize: '32px', color: '#f97316', fontWeight: 'bold' }}
                         noWrap component="div">
                         Dashboard
                     </Typography>
                     <div  className="flex gap-2 items-center">
-                        <img className="rounded-full border-4 border-orange-300 w-16" src={user?.photoURL} alt="" />
+                        <img className="rounded-full border-4 border-orange-500 w-16" src={user?.photoURL} alt="" />
                         <h2 className="font-bold">{user?.displayName}</h2>
                     </div>
                 </Link>
@@ -84,7 +84,10 @@ export default function DashboardLayout() {
                         
                     >
                         <ListItemButton>
-                            <ListItemIcon sx={{ color: 'orange' }}>{item.icon}</ListItemIcon>
+                            <ListItemIcon sx={{ color: '#f97316' }}>
+                                {item.icon}
+                            </ListItemIcon>
+
                             <ListItemText primary={item.text} />
                         </ListItemButton>
                     </ListItem>
@@ -110,7 +113,11 @@ export default function DashboardLayout() {
                     ml: { sm: `${drawerWidth}px` }
                 }}
             >
-                <Toolbar>
+                <Toolbar
+                    sx={{
+                        backgroundColor: '#f97316', // Tailwind orange-500
+                        color: 'white',             // text color for contrast inside toolbar
+                    }}>
                     <IconButton
                         color="inherit"
                         aria-label="open drawer"
@@ -120,7 +127,8 @@ export default function DashboardLayout() {
                     >
                         <MenuIcon />
                     </IconButton>
-                    {<Typography variant="h6" noWrap component="div">
+                    {<Typography variant="h6"
+                        noWrap component="div">
                         {currentTitle}
                     </Typography>}
                 </Toolbar>
@@ -131,7 +139,11 @@ export default function DashboardLayout() {
                 variant="permanent"
                 sx={{
                     display: { xs: "none", sm: "block" },
-                    "& .MuiDrawer-paper": { boxSizing: "border-box", width: drawerWidth },
+                    "& .MuiDrawer-paper": {
+                        boxSizing: "border-box",
+                        borderRight: "2px solid #f97316",
+                        width: drawerWidth,
+                    },
                 }}
                 open
             >
