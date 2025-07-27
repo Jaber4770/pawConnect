@@ -44,11 +44,9 @@ const PetDetails = () => {
             adoptionStatus: 'Pending',
             requestDate: new Date().toISOString()
         };
-        
-        // console.log('pet id: ', pet._id);
-
         // console.log(adoptionData);
-        const submitReq = await axios.patch(`/adopt-request/${id}`, adoptionData);
+        
+        const submitReq = await axios.patch(`/adoption-request/${id}`, adoptionData);
         // console.log(submitReq);
 
         if (submitReq.data.modifiedCount) {
