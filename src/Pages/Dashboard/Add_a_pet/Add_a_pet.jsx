@@ -88,7 +88,7 @@ const Add_a_pet = () => {
     };
     return (
         <Box
-            maxWidth="900px"
+            maxWidth="1000px"
             mx="auto"
             mt={4}
             p={4}

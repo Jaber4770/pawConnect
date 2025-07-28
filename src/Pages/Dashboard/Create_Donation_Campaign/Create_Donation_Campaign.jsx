@@ -8,20 +8,23 @@ import {
     Typography,
     CircularProgress,
 } from "@mui/material";
-import axios from "axios";
+import useAuth from "../../../Hooks/useAuth";
+import useAxios from "../../../Hooks/useAxios";
+import Swal from "sweetalert2";
 
-// Replace with your Cloudinary upload preset and URL
-const CLOUDINARY_URL = "https://api.cloudinary.com/v1_1/YOUR_CLOUD_NAME/image/upload";
-const CLOUDINARY_UPLOAD_PRESET = "YOUR_UPLOAD_PRESET";
+//  Cloudinary config
+const CLOUDINARY_URL = `${import.meta.env.VITE_CLOUDINARY_URL}`;
+const CLOUDINARY_UPLOAD_PRESET = `${import.meta.env.VITE_Preset}`;
 
 const validationSchema = Yup.object({
+    title: Yup.string().required("Title is required"),
     petImage: Yup.mixed().required("Pet picture is required"),
     maxDonation: Yup.number()
         .required("Maximum donation amount is required")
         .min(1, "Minimum 1"),
     lastDate: Yup.date()
         .required("Last date of donation is required")
-        .min(new Date(), "Last date cannot be in the past"),
+        .min(new Date(new Date().setHours(0, 0, 0, 0)), "Last date cannot be in the past"),
     shortDescription: Yup.string()
         .max(100, "Short description must be 100 characters or less")
         .required("Short description is required"),
@@ -30,9 +33,9 @@ const validationSchema = Yup.object({
 
 const Create_Donation_Campaign = () => {
     const [uploading, setUploading] = useState(false);
-    const [uploadedImageUrl, setUploadedImageUrl] = useState("");
+    const { user } = useAuth();
+    const axios = useAxios();
 
-    // Upload image to Cloudinary and return URL
     const uploadImage = async (file) => {
         const formData = new FormData();
         formData.append("file", file);
@@ -41,65 +44,78 @@ const Create_Donation_Campaign = () => {
         try {
             setUploading(true);
             const response = await axios.post(CLOUDINARY_URL, formData);
-            setUploading(false);
             return response.data.secure_url;
         } catch (error) {
-            setUploading(false);
             console.error("Image upload failed", error);
             throw error;
+        } finally {
+            setUploading(false);
         }
     };
 
+ 
     return (
-        <Box maxWidth="600px" mx="auto" mt={4} p={2} boxShadow={3}>
+        <Box maxWidth="800px" mx="auto" mt={4} p={2} boxShadow={3}>
             <Typography variant="h5" mb={3}>
                 Create Donation Campaign
             </Typography>
 
             <Formik
                 initialValues={{
+                    title: "",
                     petImage: null,
                     maxDonation: "",
                     lastDate: "",
                     shortDescription: "",
                     longDescription: "",
+                    addedBy: user?.email || "",
                 }}
                 validationSchema={validationSchema}
-                onSubmit={async (values, { setSubmitting, resetForm, setFieldError }) => {
+                onSubmit={async (values, { setSubmitting, resetForm, setStatus }) => {
                     try {
-                        let imageUrl = uploadedImageUrl;
+                        setStatus({});
+                        const imageUrl = await uploadImage(values.petImage);
 
-                        // If user selected a new file and no uploaded URL yet
-                        if (values.petImage && !uploadedImageUrl) {
-                            imageUrl = await uploadImage(values.petImage);
-                            setUploadedImageUrl(imageUrl);
-                        }
-
-                        // Prepare data to send to backend
                         const campaignData = {
+                            title: values.title,
                             petImage: imageUrl,
-                            maxDonation: values.maxDonation,
-                            lastDate: values.lastDate,
-                            shortDescription: values.shortDescription,
+                            description: values.shortDescription,
                             longDescription: values.longDescription,
-                            createdAt: new Date().toISOString(),
-                            paused: false, // default paused status
+                            goal: Number(values.maxDonation),
+                            lastDate: values.lastDate,
+                            category: values.category || "Pet"
                         };
 
-                        // TODO: Replace with your backend API endpoint
-                        await axios.post("/api/donation-campaigns", campaignData);
 
-                        alert("Donation campaign created successfully!");
-                        resetForm();
-                        setUploadedImageUrl("");
+                        await axios.post(`/donation-campaign`, campaignData);
+                        await Swal.fire({
+                            icon: "success",
+                            title: "Success!",
+                            text: "Donation campaign created successfully!",
+                        });
+
+                        // Reset form to initial values
+                        resetForm({
+                            values: {
+                                petImage: null,
+                                maxDonation: "",
+                                title:"",
+                                lastDate: "",
+                                shortDescription: "",
+                                longDescription: "",
+                                addedBy: user?.email || "",
+                                category: ""
+                            }
+                        });
+
                     } catch (error) {
-                        console.error(error);
-                        setFieldError("general", "Failed to create campaign. Try again.");
+                        setStatus({ general: "Failed to create campaign. Try again." });
+                    } finally {
+                        setSubmitting(false);
                     }
-                    setSubmitting(false);
                 }}
             >
-                {({ values, setFieldValue, isSubmitting, errors }) => (
+                {({ setFieldValue, isSubmitting, status, values, errors }) => (
                     <Form>
                         {/* Pet Picture */}
                         <Box mb={2}>
@@ -107,15 +123,9 @@ const Create_Donation_Campaign = () => {
                             <input
                                 type="file"
                                 accept="image/*"
-                                onChange={async (e) => {
-                                    if (e.currentTarget.files && e.currentTarget.files[0]) {
-                                        const file = e.currentTarget.files[0];
-                                        setFieldValue("petImage", file);
-                                        // Optionally upload immediately
-                                        try {
-                                            const url = await uploadImage(file);
-                                            setUploadedImageUrl(url);
-                                        } catch { }
+                                onChange={(e) => {
+                                    if (e.currentTarget.files?.[0]) {
+                                        setFieldValue("petImage", e.currentTarget.files[0]);
                                     }
                                 }}
                             />
@@ -125,15 +135,19 @@ const Create_Donation_Campaign = () => {
                                 style={{ color: "red", fontSize: "0.8rem" }}
                             />
                             {uploading && <CircularProgress size={20} />}
-                            {uploadedImageUrl && (
-                                <Box mt={1}>
-                                    <img
-                                        src={uploadedImageUrl}
-                                        alt="Uploaded"
-                                        style={{ maxWidth: "100%", maxHeight: 150 }}
-                                    />
-                                </Box>
-                            )}
+                        </Box>
+
+                        {/* Title */}
+                        <Box mb={2}>
+                            <Field
+                                as={TextField}
+                                label="Campaign Title"
+                                name="title"
+                                fullWidth
+                                variant="outlined"
+                                error={Boolean(errors.title)}
+                                helperText={<ErrorMessage name="title" />}
+                            />
                         </Box>
 
                         {/* Maximum Donation Amount */}
@@ -193,10 +207,23 @@ const Create_Donation_Campaign = () => {
                             />
                         </Box>
 
-                        {/* General form error */}
-                        {errors.general && (
+                        <Box mb={2}>
+                            <Field
+                                as={TextField}
+                                label="Added By"
+                                name="addedBy"
+                                fullWidth
+                                variant="outlined"
+                                value={user.email}
+                                InputProps={{ readOnly: true }}
+                            />
+                        </Box>
+
+                        
+                        {/* General Error */}
+                        {status?.general && (
                             <Typography color="error" mb={2}>
-                                {errors.general}
+                                {status.general}
                             </Typography>
                         )}
 
