@@ -62,13 +62,14 @@ const Create_Donation_Campaign = () => {
 
             <Formik
                 initialValues={{
+                    petName: "",
                     title: "",
                     petImage: null,
                     maxDonation: "",
                     lastDate: "",
                     shortDescription: "",
                     longDescription: "",
-                    addedBy: user?.email || "",
+                    addedBy: user?.email,
                 }}
                 validationSchema={validationSchema}
                 onSubmit={async (values, { setSubmitting, resetForm, setStatus }) => {
@@ -79,10 +80,12 @@ const Create_Donation_Campaign = () => {
                         const campaignData = {
                             title: values.title,
                             petImage: imageUrl,
+                            petName: values.petName,
                             description: values.shortDescription,
                             longDescription: values.longDescription,
                             goal: Number(values.maxDonation),
                             lastDate: values.lastDate,
+                            addedBy: user?.email,
                             category: values.category || "Pet"
                         };
 
@@ -103,7 +106,7 @@ const Create_Donation_Campaign = () => {
                                 lastDate: "",
                                 shortDescription: "",
                                 longDescription: "",
-                                addedBy: user?.email || "",
+                                addedBy: user?.email,
                                 category: ""
                             }
                         });
@@ -135,6 +138,18 @@ const Create_Donation_Campaign = () => {
                                 style={{ color: "red", fontSize: "0.8rem" }}
                             />
                             {uploading && <CircularProgress size={20} />}
+                        </Box>
+                        {/* Pet Name */}
+                        <Box mb={2}>
+                            <Field
+                                as={TextField}
+                                label="Pet Name"
+                                name="petName"
+                                fullWidth
+                                variant="outlined"
+                                error={Boolean(errors.petName)}
+                                helperText={<ErrorMessage name="petName" />}
+                            />
                         </Box>
 
                         {/* Title */}

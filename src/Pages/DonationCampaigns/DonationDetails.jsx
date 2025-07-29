@@ -1,6 +1,11 @@
 import React, { useState, useEffect } from "react";
 import { useParams } from "react-router";
 import useAxios from "../../Hooks/useAxios";
+import { useStripe, useElements, CardElement } from "@stripe/react-stripe-js";
+import CheckoutForm from "./CheckoutForm";
+import { loadStripe } from "@stripe/stripe-js";
+import { Elements } from "@stripe/react-stripe-js";
+
 
 const DonationDetailsPage = () => {
     const { id } = useParams();
@@ -9,6 +14,23 @@ const DonationDetailsPage = () => {
     const [error, setError] = useState(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const axios = useAxios();
+    // donation related variable
+    const [donationAmount, setDonationAmount] = useState(10);
+    const [successMessage, setSuccessMessage] = useState("");
+    const [errorMessage, setErrorMessage] = useState("");
+
+    const stripePromise = loadStripe("pk_test_51Rf2kNGg7l7zI9yu7qa25QbTxCv7bK6KqvOlhwjcKouWZifNDtoKZmH9lQjzcPFJPWJ0hFfA52Uow0FfHyiwuCOu00iPEvpvpw"); 
+
+    const handleSuccess = () => {
+        setSuccessMessage("Thank you for your donation!");
+        setErrorMessage("");
+    };
+
+    const handleError = (msg) => {
+        setErrorMessage(msg);
+        setSuccessMessage("");
+    };
+
 
     useEffect(() => {
         const fetchCampaign = async () => {
@@ -52,6 +74,7 @@ const DonationDetailsPage = () => {
                 />
                 <div className="p-6">
                     <h1 className="text-3xl font-bold text-orange-600 mb-4">{campaign.title}</h1>
+                    <p className="text-gray-700 text-sm mb-4">Pet Name: {campaign?.petName}</p>
                     <p className="text-gray-700 text-sm mb-4">{campaign.description}</p>
 
                     <div className="mb-4">
@@ -97,7 +120,29 @@ const DonationDetailsPage = () => {
                         />
                         <p className="text-sm text-gray-700">{campaign.longDescription}</p>
                         <p className="mt-4 text-sm text-gray-700">
-                            [ Payment form or donation processing content goes here. ]
+                            <div>
+                                <label className="block mb-2 text-sm font-medium text-gray-700">
+                                    Donation Amount (Max: ${campaign.maxDonation || 1000})
+                                </label>
+                                <input
+                                    type="number"
+                                    min="1"
+                                    max={campaign.maxDonation || 1000}
+                                    value={donationAmount}
+                                    onChange={(e) =>
+                                        setDonationAmount(Math.min(Number(e.target.value), campaign.maxDonation || 1000))
+                                    }
+                                    className="border border-gray-300 rounded px-3 py-2 w-full mb-4"
+                                />
+
+                                <Elements stripe={stripePromise}>
+                                    <CheckoutForm amount={donationAmount} onSuccess={handleSuccess} onError={handleError} />
+                                </Elements>
+
+                                {successMessage && <p className="mt-4 text-green-600">{successMessage}</p>}
+                                {errorMessage && <p className="mt-4 text-red-600">{errorMessage}</p>}
+                            </div>
+
                         </p>
                     </div>
                 </div>

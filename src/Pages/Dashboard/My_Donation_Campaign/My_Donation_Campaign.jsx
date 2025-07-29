@@ -14,44 +14,37 @@ import {
     TableBody,
     LinearProgress,
 } from "@mui/material";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import useAuth from "../../../Hooks/useAuth";
+import useAxios from "../../../Hooks/useAxios";
 
 const My_Donation_Campaign = () => {
-    // Dummy donations by logged user
-    const [donations, setDonations] = useState([
-        {
-            id: "1",
-            petName: "Buddy",
-            maxAmount: 1000,
-            collectedAmount: 400,
-            paused: false,
-            donators: [
-                { user: "Alice", amount: 100 },
-                { user: "Bob", amount: 300 },
-            ],
-        },
-        {
-            id: "2",
-            petName: "Whiskers",
-            maxAmount: 500,
-            collectedAmount: 500,
-            paused: true,
-            donators: [
-                { user: "Carol", amount: 200 },
-                { user: "Dave", amount: 300 },
-            ],
-        },
-    ]);
-
+    const queryClient = useQueryClient();
     const [viewDonatorsOpen, setViewDonatorsOpen] = useState(false);
     const [selectedDonation, setSelectedDonation] = useState(null);
+    const axios = useAxios();
+    const { user, loading } = useAuth();
 
-    const togglePause = (id) => {
-        setDonations((prev) =>
-            prev.map((don) =>
-                don.id === id ? { ...don, paused: !don.paused } : don
-            )
-        );
-        // TODO: call API to update pause status
+    const { data: donations = [], isLoading } = useQuery({
+        queryKey: ["my-campaigns", user?.email],
+        enabled: !!user?.email,
+        queryFn: async () => {
+            const res = await axios.get(`/donation-campaign?email=${user.email}`);
+            return res.data;
+        },
+    });
+
+    const pauseMutation = useMutation({
+        mutationFn: async ({ id, paused }) => {
+            await axios.patch(`/donation-campaign/${id}`, { paused: !paused });
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries(["my-campaigns", user?.email]);
+        },
+    });
+
+    const togglePause = (id, paused) => {
+        pauseMutation.mutate({ id, paused });
     };
 
     const openDonatorsModal = (donation) => {
@@ -66,7 +59,7 @@ const My_Donation_Campaign = () => {
 
     const handleEdit = (id) => {
         alert(`Redirect to edit donation campaign with id: ${id}`);
-        // TODO: replace with navigation logic
+        // You can navigate using react-router-dom: navigate(`/edit-campaign/${id}`);
     };
 
     return (
@@ -75,73 +68,71 @@ const My_Donation_Campaign = () => {
                 My Donation Campaigns
             </Typography>
 
-            <MuiTable>
-                <TableHead>
-                    <TableRow>
-                        <TableCell>Pet Name</TableCell>
-                        <TableCell>Max Donation Amount</TableCell>
-                        <TableCell>Progress</TableCell>
-                        <TableCell>Pause</TableCell>
-                        <TableCell>Edit</TableCell>
-                        <TableCell>View Donators</TableCell>
-                    </TableRow>
-                </TableHead>
-                <TableBody>
-                    {donations.map((don) => {
-                        const progressPercent =
-                            (don.collectedAmount / don.maxAmount) * 100;
-                        return (
-                            <TableRow key={don.id}>
-                                <TableCell>{don.petName}</TableCell>
-                                <TableCell>${don.maxAmount.toLocaleString()}</TableCell>
-                                <TableCell style={{ minWidth: 150 }}>
-                                    <Box display="flex" alignItems="center" gap={1}>
-                                        <Box flexGrow={1}>
-                                            <LinearProgress
-                                                variant="determinate"
-                                                value={progressPercent}
-                                                color={don.paused ? "secondary" : "primary"}
-                                            />
+            {loading || isLoading ? (
+                <Typography>Loading...</Typography>
+            ) : donations.length === 0 ? (
+                <Typography>No campaigns found.</Typography>
+            ) : (
+                <MuiTable>
+                    <TableHead>
+                        <TableRow>
+                            <TableCell>Pet Name</TableCell>
+                            <TableCell>Max Donation Amount</TableCell>
+                            <TableCell>Progress</TableCell>
+                            <TableCell>Pause</TableCell>
+                            <TableCell>Edit</TableCell>
+                            <TableCell>View Donators</TableCell>
+                        </TableRow>
+                    </TableHead>
+                    <TableBody>
+                        {donations.map((don) => {
+                            const progressPercent = (don.raised / don.goal) * 100;
+                            return (
+                                <TableRow key={don._id}>
+                                    <TableCell>{don.petName}</TableCell>
+                                    <TableCell>${don.goal}</TableCell>
+                                    <TableCell style={{ minWidth: 150 }}>
+                                        <Box display="flex" alignItems="center" gap={1}>
+                                            <Box flexGrow={1}>
+                                                <LinearProgress
+                                                    variant="determinate"
+                                                    value={progressPercent}
+                                                    color={don.paused ? "secondary" : "primary"}
+                                                />
+                                            </Box>
+                                            <Box minWidth={35}>
+                                                <Typography variant="body2" color="textSecondary">
+                                                    {progressPercent.toFixed(0)}%
+                                                </Typography>
+                                            </Box>
                                         </Box>
-                                        <Box minWidth={35}>
-                                            <Typography variant="body2" color="textSecondary">
-                                                {progressPercent.toFixed(0)}%
-                                            </Typography>
-                                        </Box>
-                                    </Box>
-                                </TableCell>
-                                <TableCell>
-                                    <Button
-                                        variant={don.paused ? "contained" : "outlined"}
-                                        color={don.paused ? "warning" : "primary"}
-                                        onClick={() => togglePause(don.id)}
-                                    >
-                                        {don.paused ? "Unpause" : "Pause"}
-                                    </Button>
-                                </TableCell>
-                                <TableCell>
-                                    <Button
-                                        variant="outlined"
-                                        onClick={() => handleEdit(don.id)}
-                                    >
-                                        Edit
-                                    </Button>
-                                </TableCell>
-                                <TableCell>
-                                    <Button
-                                        variant="outlined"
-                                        onClick={() => openDonatorsModal(don)}
-                                    >
-                                        View Donators
-                                    </Button>
-                                </TableCell>
-                            </TableRow>
-                        );
-                    })}
-                </TableBody>
-            </MuiTable>
+                                    </TableCell>
+                                    <TableCell>
+                                        <Button
+                                            variant={don.paused ? "contained" : "outlined"}
+                                            color={don.paused ? "warning" : "primary"}
+                                            onClick={() => togglePause(don._id, don.paused)}
+                                        >
+                                            {don.paused ? "Unpause" : "Pause"}
+                                        </Button>
+                                    </TableCell>
+                                    <TableCell>
+                                        <Button variant="outlined" onClick={() => handleEdit(don._id)}>
+                                            Edit
+                                        </Button>
+                                    </TableCell>
+                                    <TableCell>
+                                        <Button variant="outlined" onClick={() => openDonatorsModal(don)}>
+                                            View Donators
+                                        </Button>
+                                    </TableCell>
+                                </TableRow>
+                            );
+                        })}
+                    </TableBody>
+                </MuiTable>
+            )}
 
-            {/* Donators modal */}
             <Dialog
                 open={viewDonatorsOpen}
                 onClose={closeDonatorsModal}
@@ -150,7 +141,7 @@ const My_Donation_Campaign = () => {
             >
                 <DialogTitle>Donators for {selectedDonation?.petName}</DialogTitle>
                 <DialogContent dividers>
-                    {selectedDonation?.donators.length ? (
+                    {selectedDonation?.donators?.length ? (
                         <MuiTable>
                             <TableHead>
                                 <TableRow>
@@ -175,14 +166,6 @@ const My_Donation_Campaign = () => {
                     <Button onClick={closeDonatorsModal}>Close</Button>
                 </DialogActions>
             </Dialog>
-
-            {/*
-        TODO when API ready:
-        1. Fetch donation campaigns for logged user from backend.
-        2. Implement pause toggle API call.
-        3. Implement edit navigation to edit donation page.
-        4. Fetch donators list dynamically if needed.
-      */}
         </Box>
     );
 };

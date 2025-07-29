@@ -104,9 +104,9 @@ const All_Donation = () => {
     };
 
     const handleEditSubmit = async () => {
-        const { title, goal, petImage, lastDate, description, longDescription } = editData;
+        const { title, goal, lastDate, description, longDescription } = editData;
 
-        if (!title || !goal || !petImage || !lastDate || !description || !longDescription) {
+        if (!title || !goal || !lastDate || !description || !longDescription) {
             Swal.fire("Validation Error", "Please fill in all required fields", "warning");
             return;
         }
@@ -201,20 +201,6 @@ const All_Donation = () => {
                                         label="Title"
                                         value={editData.title}
                                         onChange={(e) => handleEditChange("title", e.target.value)}
-                                    />
-                                </Grid>
-
-                                {/* Pet Picture - file input */}
-                                <Grid item xs={12}>
-                                    <InputLabel shrink htmlFor="pet-image-file-edit">
-                                        Pet Picture *
-                                    </InputLabel>
-                                    <input
-                                        id="pet-image-file-edit"
-                                        type="file"
-                                        accept="image/*"
-                                        style={{ width: "100%" }}
-                                        onChange={(e) => handleFileChange(e)} // same handler as create modal
                                     />
                                 </Grid>
 
