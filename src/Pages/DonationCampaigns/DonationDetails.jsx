@@ -141,6 +141,7 @@ const DonationDetailsPage = () => {
 
                                 {successMessage && <p className="mt-4 text-green-600">{successMessage}</p>}
                                 {errorMessage && <p className="mt-4 text-red-600">{errorMessage}</p>}
+                                {console.log(errorMessage)}
                             </div>
 
                         </p>

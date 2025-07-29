@@ -7,7 +7,7 @@ const CheckoutForm = ({ amount, onSuccess, onError }) => {
     const stripe = useStripe();
     const elements = useElements();
     const [loading, setLoading] = useState(false);
-    const {user} = useAuth();
+    const { user } = useAuth();
     // Call hook at top level
     const axios = useAxios();
 
@@ -29,11 +29,42 @@ const CheckoutForm = ({ amount, onSuccess, onError }) => {
             });
             const clientSecret = response.data.clientSecret;
 
+
             const { error, paymentIntent } = await stripe.confirmCardPayment(clientSecret, {
                 payment_method: { card: cardElement }
             });
 
-            // need to send data to db: paymentIntent
+
+            const {
+                amount: stripeAmount,
+                id: paymentId,
+                currency,
+                payment_method_types,
+                status,
+                created,
+            } = paymentIntent;
+
+            const name = user?.displayName || "Anonymous";
+            const email = user?.email;
+            const campaignId = "688809a3f7139324e4077c80";
+            const donationAmount = stripeAmount / 100;
+
+            await axios.post("/donation-record", {
+                campaignId,
+                paymentId,
+                name,
+                email,
+                amount: donationAmount,
+                status,
+                created,
+            })
+                .then(res => {
+                    console.log("Donation saved:", res.data);
+                })
+                .catch(err => {
+                    console.error("Error saving donation:", err);
+                });
+
 
             if (error) {
                 onError(error.message);
@@ -59,7 +90,7 @@ const CheckoutForm = ({ amount, onSuccess, onError }) => {
                     console.error("Error saving payment to DB:", err);
                     onError("Payment succeeded but failed to log donation.");
                 }
-                
+
                 onSuccess();
                 cardElement.clear();
             } else {
