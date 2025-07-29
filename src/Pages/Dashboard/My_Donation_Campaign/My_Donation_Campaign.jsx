@@ -36,7 +36,7 @@ const My_Donation_Campaign = () => {
 
     const pauseMutation = useMutation({
         mutationFn: async ({ id, paused }) => {
-            await axios.patch(`/donation-campaign/${id}`, { paused: !paused });
+            await axios.patch(`/donation-campaign/${id}/pause`, { paused: !paused });
         },
         onSuccess: () => {
             queryClient.invalidateQueries(["my-campaigns", user?.email]);
