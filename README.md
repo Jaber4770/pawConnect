@@ -1,8 +1,8 @@
 # 🐾 pawConnect - Pet Adoption & Donation Platform
 
 **Live Site**:  https://pawconnect-01.web.app
-**Server Repo**: [GitHub Server Link](https://github.com/yourusername/pawconnect-server)  
-**Client Repo**: [GitHub Client Link](https://github.com/yourusername/pawconnect-client)
+**Server Repo**: https://github.com/Programming-Hero-Web-Course4/b11a12-server-side-Jaber4770
+**Client Repo**: https://github.com/Programming-Hero-Web-Course4/b11a12-client-side-Jaber4770
 
 ---
 
@@ -41,34 +41,9 @@
 - **Frontend**: React, React Router, Tailwind CSS, TanStack Query, Axios, Stripe.js
 - **Backend**: Node.js, Express.js, MongoDB, JWT
 - **Authentication**: Firebase Auth
-- **Image Hosting**: Cloudinary / ImgBB API
-- **Form Handling**: React Hook Form
+- **Image Hosting**: Cloudinary 
+- **Form Handling**: React Hook Form, Formik
 - **Data Table**: TanStack Table
-
----
-
-## 📁 Folder Structure
-
-
-
-/pawconnect-client
-├── src
-│ ├── components
-│ ├── pages
-│ ├── routes
-│ ├── hooks
-│ └── layout
-
-/pawconnect-server
-├── controllers
-├── routes
-├── models
-├── middleware
-└── config
-
-
-
-
 
 ---
 
@@ -108,8 +83,6 @@
 
 ## 🚀 Deployment
 
-- **Client**: [Vercel / Netlify](https://vercel.com/)
-- **Server**: [Render / Cyclic / Railway](https://render.com/)
 - CORS & refresh issues handled
 - Environment variables secured
 
@@ -117,16 +90,16 @@
 
 ## 🙋‍♂️ Developer
 
-**Name**: Jaber Ahmed (aka Jack Sargey)  
+**Name**: Jaber Ahmed
 **Role**: Full-stack Developer (MERN)  
-**Portfolio**: [jack-sargey.dev](https://jack-sargey.dev)  
-**Email**: jack@example.com
+**Portfolio**: https://portfolio.jacksargey.com/
+**Email**:  jaber.ahmed4770@gmail.com
 
 ---
 
 ## 📌 Final Note
 
-This project is a part of the **Assignment 12 - Pet Adoption Platform** under **Category 006**. It focuses on real-world application of MERN technologies to create meaningful social impact by helping animals find loving homes and donors support their care.
+It focuses on real-world application of MERN technologies to create meaningful social impact by helping animals find loving homes and donors support their care.
 
 ---
 

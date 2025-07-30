@@ -1,19 +1,16 @@
 import React from 'react';
 import { Navigate } from 'react-router';
 import useAuth from '../Hooks/useAuth';
+import useUserRole from '../Hooks/useUserRole';
+import Spinner from '../Shared/Loader/Spinner';
 
 const AdminRoute = ({ children }) => {
 
     const { user, loading } = useAuth();
     const { role, loading: authLoading } = useUserRole();
 
-    /* 
-        console.log('user email:', user?.email);
-        console.log('role from backend:', role); */
-
-
     if (loading || authLoading) {
-        return <Loader></Loader>
+        return <Spinner></Spinner>
     }
 
     if (!loading && !authLoading && (!user || role !== 'admin')) {

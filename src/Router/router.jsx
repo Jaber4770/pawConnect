@@ -21,6 +21,7 @@ import All_Donation from "../Pages/Dashboard/All_Donation/All_Donation";
 import Users from "../Pages/Dashboard/Users/Users";
 import UserProfile from "../Pages/UserProfile/UserProfile";
 import PrivateRoute from "../Route/PrivateRoute";
+import AdminRoute from "../Route/AdminRoute";
 
 export const router = createBrowserRouter([
     {
@@ -107,15 +108,15 @@ export const router = createBrowserRouter([
             },
             {
                 path: '/users',
-                element: <Users></Users>
+                element: <AdminRoute><Users></Users></AdminRoute>
             },
             {
                 path: '/all-pets',
-                element:<All_Pets></All_Pets>
+                element: <AdminRoute><All_Pets></All_Pets></AdminRoute>
             },
             {
                 path: '/all-donations',
-                element:<All_Donation></All_Donation>
+                element: <AdminRoute><All_Donation></All_Donation></AdminRoute>
             },
         ]
 
