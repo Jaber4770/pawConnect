@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React from "react";
 import {
     Box,
     Button,
@@ -10,25 +10,39 @@ import {
     Avatar,
     Typography,
 } from "@mui/material";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import useAuth from "../../../Hooks/useAuth";
+import useAxios from "../../../Hooks/useAxios";
 
 const My_Donation = () => {
-    // Dummy donation records where the logged user donated
-    const [donations, setDonations] = useState([
-        {
-            id: "d1",
-            petName: "Buddy",
-            petImage:
-                "https://images.unsplash.com/photo-1558788353-f76d92427f16?auto=format&fit=crop&w=64&q=80",
-            donatedAmount: 150,
+    const { user } = useAuth();
+    const queryClient = useQueryClient();
+    const axios = useAxios();
+
+    const fetchDonations = async () => {
+        const res = await axios.get(`/donation-record?email=${user?.email}`);
+        return res.data;
+    };
+
+    const requestRefund = async (id) => {
+        const res = await axios.patch(`/donation-record/${id}`, {
+            status: "refunded"
+        });
+        return res.data;
+    };
+
+    const { data: donations = [], isLoading } = useQuery({
+        queryKey: ["donations", user?.email],
+        queryFn: () => fetchDonations(),
+        enabled: !!user?.email,
+    });
+
+    const refundMutation = useMutation({
+        mutationFn: requestRefund,
+        onSuccess: () => {
+            queryClient.invalidateQueries(["donations", user?.email]);
         },
-        {
-            id: "d2",
-            petName: "Whiskers",
-            petImage:
-                "https://images.unsplash.com/photo-1517423440428-a5a00ad493e8?auto=format&fit=crop&w=64&q=80",
-            donatedAmount: 75,
-        },
-    ]);
+    });
 
     const handleRefund = (id) => {
         if (
@@ -36,18 +50,15 @@ const My_Donation = () => {
                 "Are you sure you want to ask for a refund and remove your donation?"
             )
         ) {
-            setDonations((prev) => prev.filter((donation) => donation.id !== id));
-            // TODO: call API to process refund and update DB
+            refundMutation.mutate(id);
         }
     };
 
     return (
         <Box p={2}>
-            <Typography variant="h4" mb={2}>
-                My Donations
-            </Typography>
-
-            {donations.length === 0 ? (
+            {isLoading ? (
+                <Typography>Loading donations...</Typography>
+            ) : donations.length === 0 ? (
                 <Typography>No donations found.</Typography>
             ) : (
                 <MuiTable>
@@ -56,38 +67,45 @@ const My_Donation = () => {
                             <TableCell>Pet Image</TableCell>
                             <TableCell>Pet Name</TableCell>
                             <TableCell>Donated Amount</TableCell>
-                            <TableCell>Refund</TableCell>
+                            <TableCell>Status</TableCell>
                         </TableRow>
                     </TableHead>
 
                     <TableBody>
-                        {donations.map(({ id, petName, petImage, donatedAmount }) => (
-                            <TableRow key={id}>
+                                {donations.map(({ _id, petName, petImage, amount, status }) => (
+                            <TableRow key={_id}>
                                 <TableCell>
                                     <Avatar src={petImage} alt={petName} />
                                 </TableCell>
                                 <TableCell>{petName}</TableCell>
-                                <TableCell>${donatedAmount.toLocaleString()}</TableCell>
-                                <TableCell>
-                                    <Button
-                                        variant="outlined"
-                                        color="error"
-                                        onClick={() => handleRefund(id)}
-                                    >
-                                        Ask for Refund
-                                    </Button>
-                                </TableCell>
+                                        <TableCell>${amount?.toLocaleString()}</TableCell>
+                                        <TableCell>
+                                            <Box display="flex" flexDirection="column" gap="5px" width="fit-content">
+                                                <Typography
+                                                    sx={{
+                                                        border: "1px solid green",
+                                                        padding: "4px 8px",
+                                                        borderRadius: "4px",
+                                                        width: "fit-content",
+                                                    }}
+                                                >
+                                                    {status}
+                                                </Typography>
+                                                <Button
+                                                    variant="outlined"
+                                                    color="error"
+                                                    onClick={() => handleRefund(_id)}
+                                                    disabled={status === "refunded" || refundMutation.isLoading}
+                                                >
+                                                    Ask for Refund
+                                                </Button>
+                                            </Box>
+                                        </TableCell>
                             </TableRow>
                         ))}
                     </TableBody>
                 </MuiTable>
             )}
-
-            {/*
-        TODO when API ready:
-        1. Fetch user's donations from backend.
-        2. Implement refund API call on handleRefund.
-      */}
         </Box>
     );
 };

@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import {
     Box,
     Button,
@@ -12,6 +12,7 @@ import {
     FormGroup,
     FormControlLabel,
     Checkbox,
+    CircularProgress,
 } from "@mui/material";
 import { Formik, Form, Field, ErrorMessage } from "formik";
 import * as Yup from "yup";
@@ -19,6 +20,9 @@ import useAxios from "../../../Hooks/useAxios";
 import useAuth from "../../../Hooks/useAuth";
 import Swal from "sweetalert2";
 import { useNavigate } from "react-router";
+
+const CLOUDINARY_URL = import.meta.env.VITE_CLOUDINARY_URL;
+const CLOUDINARY_UPLOAD_PRESET = import.meta.env.VITE_Preset;
 
 const initialValues = {
     name: "",
@@ -52,40 +56,56 @@ const validationSchema = Yup.object({
         .required("Required"),
     shortDescription: Yup.string().required("Required"),
     longDescription: Yup.string().required("Required"),
-    image: Yup.string().url("Must be a valid URL").required("Required"),
+    image: Yup.string().required("Required"),
 });
 
 const Add_a_pet = () => {
     const axios = useAxios();
     const { user } = useAuth();
     const navigate = useNavigate();
-    const handleSubmit = async (values, { resetForm }) => {
-        // console.log("Form data:", values); // ✅ First, log the data
+    const [uploading, setUploading] = useState(false);
 
+    const uploadImage = async (file) => {
+        const formData = new FormData();
+        formData.append("file", file);
+        formData.append("upload_preset", CLOUDINARY_UPLOAD_PRESET);
+
+        try {
+            setUploading(true);
+            const response = await axios.post(CLOUDINARY_URL, formData);
+            return response.data.secure_url;
+        } catch (error) {
+            console.error("Image upload failed", error);
+            throw error;
+        } finally {
+            setUploading(false);
+        }
+    };
+
+    const handleSubmit = async (values, { resetForm }) => {
         try {
             const response = await axios.post("/pet-listing", {
                 ...values,
                 addedBy: user?.email,
                 dateAdded: new Date().toISOString(),
             });
-            // console.log("Pet added successfully:", response.data);
-            if (response.data.success) { 
+
+            if (response.data.success) {
                 Swal.fire({
                     icon: "success",
                     title: `${response.data.message}`,
                     showConfirmButton: false,
-                    timer: 1500
+                    timer: 1500,
                 });
-                navigate('/my-added-pets');
+                navigate("/my-added-pets");
             }
-            resetForm();
 
-            // console.log("Pet added successfully:", data);
             resetForm();
         } catch (error) {
             console.error("Error adding pet:", error);
         }
     };
+
     return (
         <Box
             maxWidth="1000px"
@@ -107,7 +127,6 @@ const Add_a_pet = () => {
             >
                 {({ values, setFieldValue, touched, errors }) => (
                     <Form>
-                        {/* Two-column layout */}
                         <Box
                             display="grid"
                             gridTemplateColumns="repeat(2, 1fr)"
@@ -130,7 +149,6 @@ const Add_a_pet = () => {
                                         title: "Only letters and spaces allowed",
                                     },
                                 },
-                                { name: "image", label: "Image URL" },
                             ].map(({ name, label, inputProps }) => (
                                 <Box key={name}>
                                     <Field
@@ -144,6 +162,51 @@ const Add_a_pet = () => {
                                     />
                                 </Box>
                             ))}
+
+                            {/* ✅ Image Upload Field */}
+                            <Box>
+                                <Typography>Pet Image *</Typography>
+                                <input
+                                    type="file"
+                                    accept="image/*"
+                                    onChange={async (e) => {
+                                        const file = e.currentTarget.files?.[0];
+                                        if (file) {
+                                            try {
+                                                const imageUrl = await uploadImage(file);
+                                                setFieldValue("image", imageUrl);
+                                                Swal.fire({
+                                                    icon: "success",
+                                                    title: "Image uploaded successfully",
+                                                    showConfirmButton: false,
+                                                    timer: 1200,
+                                                });
+                                            } catch {
+                                                Swal.fire({
+                                                    icon: "error",
+                                                    title: "Upload failed",
+                                                    text: "Try again with a smaller image.",
+                                                });
+                                            }
+                                        }
+                                    }}
+                                />
+                                {uploading && <CircularProgress size={24} />}
+                                {values.image && (
+                                    <Box mt={2}>
+                                        <img
+                                            src={values.image}
+                                            alt="Uploaded"
+                                            style={{ width: "100%", borderRadius: "8px" }}
+                                        />
+                                    </Box>
+                                )}
+                                <ErrorMessage
+                                    name="image"
+                                    component="div"
+                                    style={{ color: "red", fontSize: "0.8rem" }}
+                                />
+                            </Box>
                         </Box>
 
                         <Box mb={3}>
@@ -194,7 +257,6 @@ const Add_a_pet = () => {
                             />
                         </Box>
 
-                        {/* Checkboxes in row */}
                         <FormGroup row sx={{ mb: 3 }}>
                             {[
                                 { name: "goodWithKids", label: "Good With Kids" },

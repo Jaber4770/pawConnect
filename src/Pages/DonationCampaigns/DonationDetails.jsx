@@ -19,6 +19,7 @@ const DonationDetailsPage = () => {
     const [successMessage, setSuccessMessage] = useState("");
     const [errorMessage, setErrorMessage] = useState("");
 
+    // that should be in env file 
     const stripePromise = loadStripe("pk_test_51Rf2kNGg7l7zI9yu7qa25QbTxCv7bK6KqvOlhwjcKouWZifNDtoKZmH9lQjzcPFJPWJ0hFfA52Uow0FfHyiwuCOu00iPEvpvpw"); 
 
     const handleSuccess = () => {
@@ -141,7 +142,7 @@ const DonationDetailsPage = () => {
 
                                 {successMessage && <p className="mt-4 text-green-600">{successMessage}</p>}
                                 {errorMessage && <p className="mt-4 text-red-600">{errorMessage}</p>}
-                                {console.log(errorMessage)}
+                                {/* {console.log(errorMessage)} */}
                             </div>
 
                         </p>
