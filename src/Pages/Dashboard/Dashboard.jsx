@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from "react";
 import {
     Box,
     Card,
@@ -9,7 +9,7 @@ import {
     ListItemText,
     Divider,
     useTheme,
-} from '@mui/material';
+} from "@mui/material";
 import {
     People,
     Pets,
@@ -17,7 +17,7 @@ import {
     AttachMoney,
     Favorite,
     Block,
-} from '@mui/icons-material';
+} from "@mui/icons-material";
 import {
     BarChart,
     Bar,
@@ -29,86 +29,84 @@ import {
     Tooltip,
     Legend,
     ResponsiveContainer,
-} from 'recharts';
-import useAuth from '../../Hooks/useAuth';
+} from "recharts";
+import { useQuery } from "@tanstack/react-query";
+import useAuth from "../../Hooks/useAuth";
+import useAxios from "../../Hooks/useAxios";
+
+
 
 const Dashboard = () => {
     const theme = useTheme();
     const { user } = useAuth();
-    console.log(user?.email);
+    const axios = useAxios();
 
+    const fetchDashboardData = async () => {
+        const response = await axios.get("/dashboard-stats");
+        // axios throws on error, so no need to check response.ok
+        return response.data;
+    };
 
-    const [dashboardStats] = useState([
+    const { data: dashboardData, isLoading, isError, error } = useQuery({
+        queryKey: ["dashboardStats"],
+        queryFn: fetchDashboardData,
+        staleTime: 1000 * 60 * 5,
+        retry: 1,
+    });
+
+    if (isLoading) return <Typography>Loading...</Typography>;
+    if (isError)
+        return (
+            <Typography color="error">
+                Error loading data: {error.message}
+            </Typography>
+        );
+
+    const dashboardStats = [
         {
-            title: 'Total Users',
-            value: 100,
+            title: "Total Users",
+            value: dashboardData.totalUsers,
             icon: <People fontSize="large" color="primary" />,
         },
         {
-            title: 'Total Pets',
-            value: 40,
+            title: "Total Pets",
+            value: dashboardData.totalPets,
             icon: <Pets fontSize="large" color="success" />,
         },
         {
-            title: 'Donation Campaigns',
-            value: 12,
+            title: "Donation Campaigns",
+            value: dashboardData.donationCampaigns,
             icon: <Campaign fontSize="large" color="warning" />,
         },
         {
-            title: 'Total Donations',
-            value: '$2,500',
+            title: "Total Donations",
+            value: `$${dashboardData.totalDonations.toLocaleString()}`,
             icon: <AttachMoney fontSize="large" color="info" />,
         },
         {
-            title: 'Adopted Pets',
-            value: 18,
+            title: "Adopted Pets",
+            value: dashboardData.adoptedPets,
             icon: <Favorite fontSize="large" color="error" />,
         },
         {
-            title: 'Banned Users',
-            value: 3,
-            icon: <Block fontSize="large" sx={{ color: '#f44336' }} />,
+            title: "Banned Users",
+            value: dashboardData.bannedUsers,
+            icon: <Block fontSize="large" sx={{ color: "#f44336" }} />,
         },
-    ]);
-
-    const recentActivities = [
-        'John adopted Bella 🐶',
-        'Anna donated $50 to Tiger 🐱',
-        'Michael paused his donation campaign 🛑',
-        'Liam added a new pet: Rex 🐕',
-        'Emma became an admin 👑',
     ];
 
-    const donationData = [
-        { month: 'Jan', amount: 300 },
-        { month: 'Feb', amount: 500 },
-        { month: 'Mar', amount: 700 },
-        { month: 'Apr', amount: 400 },
-        { month: 'May', amount: 800 },
-        { month: 'Jun', amount: 650 },
-    ];
-
-    const adoptionPieData = [
-        { name: 'Adopted', value: 18 },
-        { name: 'Not Adopted', value: 22 },
-    ];
-
-    const COLORS = ['#00C49F', '#FF8042'];
+    const COLORS = ["#00C49F", "#FF8042"];
 
     return (
         <Box p={3}>
-            <Typography variant="h4" mb={3}>
-                Dashboard Overview
-            </Typography>
-
             {/* Stat Cards */}
             <Box display="flex" flexWrap="wrap" gap={3}>
                 {dashboardStats.map((item, idx) => (
                     <Card
                         key={idx}
                         sx={{
-                            flex: '1 1 300px',
-                            minWidth: '280px',
+                            flex: "1 1 300px",
+                            minWidth: "280px",
                             borderRadius: 3,
                             boxShadow: 3,
                         }}
@@ -130,7 +128,7 @@ const Dashboard = () => {
                 ))}
             </Box>
 
-            {/* Recent Activities - Full Width */}
+            {/* Recent Activities */}
             <Box mt={4}>
                 <Card sx={{ borderRadius: 3, boxShadow: 3 }}>
                     <CardContent>
@@ -138,12 +136,14 @@ const Dashboard = () => {
                             Recent Activities
                         </Typography>
                         <List>
-                            {recentActivities.map((activity, idx) => (
+                            {dashboardData.recentActivities.map((activity, idx) => (
                                 <React.Fragment key={idx}>
                                     <ListItem>
                                         <ListItemText primary={activity} />
                                     </ListItem>
-                                    {idx < recentActivities.length - 1 && <Divider />}
+                                    {idx < dashboardData.recentActivities.length - 1 && (
+                                        <Divider />
+                                    )}
                                 </React.Fragment>
                             ))}
                         </List>
@@ -154,13 +154,13 @@ const Dashboard = () => {
             {/* Charts Row */}
             <Box display="flex" flexWrap="wrap" gap={3} mt={4}>
                 {/* Monthly Donations Chart */}
-                <Card sx={{ flex: '1 1 500px', borderRadius: 3, boxShadow: 3 }}>
+                <Card sx={{ flex: "1 1 500px", borderRadius: 3, boxShadow: 3 }}>
                     <CardContent>
                         <Typography variant="h6" mb={2}>
                             Monthly Donations
                         </Typography>
                         <ResponsiveContainer width="100%" height={250}>
-                            <BarChart data={donationData}>
+                            <BarChart data={dashboardData.monthlyDonations}>
                                 <XAxis dataKey="month" />
                                 <YAxis />
                                 <Tooltip />
@@ -172,7 +172,7 @@ const Dashboard = () => {
                 </Card>
 
                 {/* Adoption Pie Chart */}
-                <Card sx={{ flex: '1 1 500px', borderRadius: 3, boxShadow: 3 }}>
+                <Card sx={{ flex: "1 1 500px", borderRadius: 3, boxShadow: 3 }}>
                     <CardContent>
                         <Typography variant="h6" mb={2}>
                             Pet Adoption Status
@@ -180,7 +180,7 @@ const Dashboard = () => {
                         <ResponsiveContainer width="100%" height={250}>
                             <PieChart>
                                 <Pie
-                                    data={adoptionPieData}
+                                    data={dashboardData.adoptionPieData}
                                     dataKey="value"
                                     nameKey="name"
                                     cx="50%"
@@ -188,8 +188,11 @@ const Dashboard = () => {
                                     outerRadius={80}
                                     label
                                 >
-                                    {adoptionPieData.map((entry, index) => (
-                                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                                    {dashboardData.adoptionPieData.map((entry, index) => (
+                                        <Cell
+                                            key={`cell-${index}`}
+                                            fill={COLORS[index % COLORS.length]}
+                                        />
                                     ))}
                                 </Pie>
                                 <Tooltip />

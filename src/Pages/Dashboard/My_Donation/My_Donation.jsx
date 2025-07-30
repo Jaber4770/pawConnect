@@ -13,6 +13,7 @@ import {
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import useAuth from "../../../Hooks/useAuth";
 import useAxios from "../../../Hooks/useAxios";
+import Swal from "sweetalert2";
 
 const My_Donation = () => {
     const { user } = useAuth();
@@ -45,13 +46,20 @@ const My_Donation = () => {
     });
 
     const handleRefund = (id) => {
-        if (
-            window.confirm(
-                "Are you sure you want to ask for a refund and remove your donation?"
-            )
-        ) {
-            refundMutation.mutate(id);
-        }
+        Swal.fire({
+            title: "Are you sure?",
+            text: "You are about to request a refund and remove your donation.",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "#d33",
+            cancelButtonColor: "#3085d6",
+            confirmButtonText: "Yes, refund it!",
+            cancelButtonText: "Cancel"
+        }).then((result) => {
+            if (result.isConfirmed) {
+                refundMutation.mutate(id);
+            }
+        });
     };
 
     return (

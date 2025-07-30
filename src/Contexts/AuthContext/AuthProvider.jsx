@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { AuthContext } from './AuthContext';
-import { createUserWithEmailAndPassword, FacebookAuthProvider, GoogleAuthProvider, onAuthStateChanged, signInWithEmailAndPassword, signInWithPopup } from 'firebase/auth';
+import { createUserWithEmailAndPassword, FacebookAuthProvider, GoogleAuthProvider, onAuthStateChanged, signInWithEmailAndPassword, signInWithPopup, signOut } from 'firebase/auth';
 import { auth } from '../../../firebase.init';
 import { Password } from '@mui/icons-material';
 
@@ -28,6 +28,12 @@ const AuthProvider = ({ children }) => {
     }
 
     const logOutUser = () => {
+        return signOut(auth)
+            .then(() => {
+            // Sign-out successful.
+        }).catch((error) => {
+            // An error happened.
+        });
 
     }
 

@@ -14,6 +14,7 @@ import MenuItem from '@mui/material/MenuItem';
 import { Link, NavLink, useNavigate } from 'react-router';
 import PawLogo from '../Logo/PawLogo';
 import useAuth from '../../Hooks/useAuth';
+import { AuthContext } from '../../Contexts/AuthContext/AuthContext';
 
 const pages = ['Home', 'Pet Listing', 'Donation Campaigns'];
 const settings = ['Profile', 'Dashboard', 'Logout'];
@@ -22,7 +23,8 @@ function Navbar() {
     const [anchorElNav, setAnchorElNav] = React.useState(null);
     const [anchorElUser, setAnchorElUser] = React.useState(null);
     const navigate = useNavigate();
-    const { user } = useAuth();
+    const { user, logOutUser } = useAuth();
+
 
     const handleOpenNavMenu = (event) => {
         setAnchorElNav(event.currentTarget);
@@ -42,6 +44,7 @@ function Navbar() {
     const handleLogout = () => {
         // Example: clear token and redirect
         localStorage.removeItem('access-token'); // or however you store the token
+        logOutUser();
         navigate('/login'); // make sure to import useNavigate from react-router-dom
     };
     

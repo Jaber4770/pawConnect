@@ -26,11 +26,13 @@ import { Link, Outlet, useLocation, useNavigate } from "react-router";
 import PeopleIcon from '@mui/icons-material/People';
 import AttachMoneyIcon from '@mui/icons-material/AttachMoney';
 import useAuth from "../../Hooks/useAuth";
+import { HomeIcon } from "lucide-react";
 
 
 const drawerWidth = 240;
 
 const menuItems = [
+    { text: "Home", icon: <HomeIcon />, path: "home" },
     { text: "Add a Pet", icon: <PetsIcon />, path: "add-a-pet" },
     { text: "My Added Pets", icon: <ListAltIcon />, path: "my-added-pets" },
     { text: "Adoption Request", icon: <RequestPageIcon />, path: "adoption-request" },

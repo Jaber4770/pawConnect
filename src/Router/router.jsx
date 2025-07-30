@@ -20,6 +20,7 @@ import All_Pets from "../Pages/Dashboard/All_Pets/All_Pets";
 import All_Donation from "../Pages/Dashboard/All_Donation/All_Donation";
 import Users from "../Pages/Dashboard/Users/Users";
 import UserProfile from "../Pages/UserProfile/UserProfile";
+import PrivateRoute from "../Route/PrivateRoute";
 
 export const router = createBrowserRouter([
     {
@@ -45,15 +46,15 @@ export const router = createBrowserRouter([
             },
             {
                 path: '/pet-details/:id',
-                element: <PetDetails></PetDetails>
+                element: <PrivateRoute><PetDetails></PetDetails></PrivateRoute>
             },
             {
                 path: '/DonationDetailsPage/:id',
-                element: <DonationDetailsPage></DonationDetailsPage>
+                element: <PrivateRoute><DonationDetailsPage></DonationDetailsPage></PrivateRoute>
             },
             {
                 path: '/profile',
-                element: <UserProfile></UserProfile>
+                element: <PrivateRoute><UserProfile></UserProfile></PrivateRoute>
             }
         ]
     },
@@ -73,7 +74,7 @@ export const router = createBrowserRouter([
     },
     {
         path: "/",
-        element: <DashboardLayout></DashboardLayout>,
+        element: <PrivateRoute><DashboardLayout></DashboardLayout></PrivateRoute>,
         children: [
             {
                 path: '/dashboard',
