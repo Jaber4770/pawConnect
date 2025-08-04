@@ -1,8 +1,7 @@
 # 🐾 pawConnect - Pet Adoption & Donation Platform
 
 **Live Site**:  https://pawconnect-01.web.app
-**Server Repo**: https://github.com/Programming-Hero-Web-Course4/b11a12-server-side-Jaber4770
-**Client Repo**: https://github.com/Programming-Hero-Web-Course4/b11a12-client-side-Jaber4770
+
 
 ---
 
