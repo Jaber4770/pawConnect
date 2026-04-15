@@ -90,7 +90,7 @@
 ## 🙋‍♂️ Developer
 
 **Name**: Jaber Ahmed
-**Role**: Full-stack Developer (MERN)  
+**Role**: Full-stack Developer  
 **Portfolio**: https://portfolio.jacksargey.com/
 **Email**:  jaber.ahmed4770@gmail.com
 
